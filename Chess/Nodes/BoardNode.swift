@@ -12,16 +12,17 @@ class BoardNode : SKNode {
     private let squareSize : CGFloat
     var squares : [[SquareNode]] = []
     
-    init(squareSize : CGFloat){
+    init(squareSize : CGFloat , fen : String){
+        
         self.squareSize = squareSize
         super.init()
         createGrid()
-        setupStartingPosition()
+        setPositionFromFen(fen)
     }
     
     required init?(coder aDecoder: NSCoder) {
-            fatalError("init(coder:) has not been implemented")
-        }
+        fatalError("init(coder:) has not been implemented")
+    }
     
     private func createGrid () {
         
@@ -33,7 +34,7 @@ class BoardNode : SKNode {
             
             for col in 0..<8 {
                 
-                let islight =  (row + col) % 2 == 0
+                let islight =  (row + col) % 2 == 1
                 let square = SquareNode(row: row, col: col, size: CGSize(width: squareSize, height: squareSize), isLight: islight)
                 let xPos = offset + (CGFloat(col) * squareSize)
                 let yPos = offset + (CGFloat(row) * squareSize)
@@ -45,15 +46,15 @@ class BoardNode : SKNode {
         }
     }
     
-   func square( at gridPos: (col: Int, row: Int)) -> SquareNode?{
+    func square( at gridPos: (col: Int, row: Int)) -> SquareNode?{
         guard gridPos.row >= 0 && gridPos.row < 8,
-                  gridPos.col >= 0 && gridPos.col < 8 else {
-                print("Error: Coordinate out of bounds: \(gridPos)")
-                return nil
-            }
-
-            return squares[gridPos.row][gridPos.col]
+              gridPos.col >= 0 && gridPos.col < 8 else {
+            print("Error: Coordinate out of bounds: \(gridPos)")
+            return nil
         }
+        
+        return squares[gridPos.row][gridPos.col]
+    }
     
     
     private func spawnPiece (type: PieceType, pieceColor : PieceColor , at gridPos: (col:Int , row : Int)){
@@ -69,56 +70,54 @@ class BoardNode : SKNode {
         addChild(piece)
     }
     
-    func setupStartingPosition(){
-        for col in 0 ..< 8 {
-            //pawns
-            spawnPiece(type: PieceType.pawn, pieceColor: PieceColor.black, at: (col: col, row: 6))
-            spawnPiece(type: PieceType.pawn, pieceColor: PieceColor.white, at: (col: col, row: 1))
+    func setPositionFromFen (_ fen : String){
+        let boardPart = fen.split(separator: " ")[0]
+        let rows = boardPart.split(separator: "/")
+        for (i, rowString) in rows.enumerated(){
+            let rankIndex = 7 - i
+            var fileIndex = 0
             
+            for char in rowString {
+                // CASE A: It's a number (Empty Squares)
+                if let emptyCount = Int(String(char)) {
+                    fileIndex += emptyCount
+                }
+                // CASE B: It's a letter (A Piece)
+                else {
+                    let pieceColor = char.isUppercase ? PieceColor.white : PieceColor.black
+                    let type : PieceType
+                    switch char.lowercased() {
+                    case "p": type = PieceType.pawn
+                    case "r": type = PieceType.rook
+                    case "n": type = PieceType.knight
+                    case "b": type = PieceType.bishop
+                    case "q": type = PieceType.queen
+                    case "k": type = PieceType.king
+                    default :return
+                    }
+                    spawnPiece(type: type , pieceColor: pieceColor, at: (col: fileIndex, row: rankIndex))
+                    fileIndex += 1
+                }
+            }
         }
-        
-        //rooks
-        spawnPiece(type: PieceType.rook, pieceColor: PieceColor.black, at: (col: 0, row: 7))
-        spawnPiece(type: PieceType.rook, pieceColor: PieceColor.black, at: (col: 7, row: 7))
-        spawnPiece(type: PieceType.rook, pieceColor: PieceColor.white, at: (col: 0, row: 0))
-        spawnPiece(type: PieceType.rook, pieceColor: PieceColor.white, at: (col: 7, row: 0))
-        
-        //knights
-        spawnPiece(type: PieceType.knight, pieceColor: PieceColor.black, at: (col: 1, row: 7))
-        spawnPiece(type: PieceType.knight, pieceColor: PieceColor.black, at: (col: 6, row: 7))
-        spawnPiece(type: PieceType.knight, pieceColor: PieceColor.white, at: (col: 1, row: 0))
-        spawnPiece(type: PieceType.knight, pieceColor: PieceColor.white, at: (col: 6, row: 0))
-        
-        //bishops
-        spawnPiece(type: PieceType.bishop, pieceColor: PieceColor.black, at: (col: 2, row: 7))
-        spawnPiece(type: PieceType.bishop, pieceColor: PieceColor.black, at: (col: 5, row: 7))
-        spawnPiece(type: PieceType.bishop, pieceColor: PieceColor.white, at: (col: 2, row: 0))
-        spawnPiece(type: PieceType.bishop, pieceColor: PieceColor.white, at: (col: 5, row: 0))
-        
-        //queens
-        spawnPiece(type: PieceType.queen, pieceColor: PieceColor.black, at: (col: 3, row: 7))
-        spawnPiece(type: PieceType.queen, pieceColor: PieceColor.white, at: (col: 4, row: 0))
-        
-        //kings
-        spawnPiece(type: PieceType.king, pieceColor: PieceColor.black, at: (col: 4, row: 7))
-        spawnPiece(type: PieceType.king, pieceColor: PieceColor.white, at: (col: 3, row: 0))
     }
-    
-    func gridPosition(at point: CGPoint) -> (col: Int, row: Int)? {
-        // 1. Calculate the offset used during creation
-        let offset = -(squareSize * 4) + (squareSize / 2)
+         
+         
         
-        // 2. Reverse the math: (x - offset) / size = column
-        // We use "round" to find the nearest integer index
-        let col = Int(round((point.x - offset) / squareSize))
-        let row = Int(round((point.y - offset) / squareSize))
-        
-        // 3. Check bounds
-        if col >= 0 && col < 8 && row >= 0 && row < 8 {
-            return (col, row)
+        func gridPosition(at point: CGPoint) -> (col: Int, row: Int)? {
+            // 1. Calculate the offset used during creation
+            let offset = -(squareSize * 4) + (squareSize / 2)
+            
+            // 2. Reverse the math: (x - offset) / size = column
+            // We use "round" to find the nearest integer index
+            let col = Int(round((point.x - offset) / squareSize))
+            let row = Int(round((point.y - offset) / squareSize))
+            
+            // 3. Check bounds
+            if col >= 0 && col < 8 && row >= 0 && row < 8 {
+                return (col, row)
+            }
+            return nil
         }
-        return nil
     }
-}
-
 

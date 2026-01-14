@@ -8,10 +8,12 @@
 import SpriteKit
 import SwiftUI
 import GameplayKit
+import ChessKit
 
 class GameScene: SKScene {
     
     var chessBoard : BoardNode!
+    var game : Game?
     var selectedPiece : PieceNode?
     var draggingPiece : PieceNode?
     var dragStartPosition: CGPoint?
@@ -20,37 +22,54 @@ class GameScene: SKScene {
     
     override func didMove(to view: SKView) {
         
+        //game logic engine
+        self.game = Game()
+        
+        
+        
         backgroundColor = SKColor(red: 226/255, green: 205/255, blue: 181/255, alpha: 1)
         let screenWidth = self.size.width
         let margin: CGFloat = 20.0
         let availableWidth = screenWidth - (margin * 2)
         let squareSize = availableWidth / 8
                 
-        // 2. Create the board
-        chessBoard = BoardNode(squareSize: squareSize)
+        guard let fenString = game?.startingPosition?.fen else {
+                print("Error: Could not retrieve FEN string.")
+                return
+            }
+        
+        chessBoard = BoardNode(squareSize: squareSize, fen : fenString)
                 
         // 3. Center it
         chessBoard.position = CGPoint(x: self.frame.midX, y: self.frame.midY)
                 
         // 4. Add to scene
         addChild(chessBoard)
-            
-        
     }
     
+
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
         guard let touch = touches.first else { return }
         let location = touch.location(in: self.chessBoard)
         hasDragged = false
         let nodes = chessBoard.nodes(at:location)
         
-        if let piece = nodes.first(where : {$0 is PieceNode}) as? PieceNode{
+        let touchedPiece = nodes.first(where: { $0 is PieceNode }) as? PieceNode
+        let touchedSquare = nodes.first(where: { $0 is SquareNode }) as? SquareNode
+        
+        if let piece = touchedPiece{
             draggingPiece = piece
             dragStartPosition = piece.position
             piece.zPosition = 100
             piece.setScale(1.1)
-            return
         }
+        
+        if let square  = touchedSquare{
+            square.highlighSelected()
+            
+        }
+        
+        
     }
     
     override func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent?) {
@@ -132,8 +151,6 @@ class GameScene: SKScene {
                 selectedPiece = piece
             }
         }
-    
-    
     
     
 }

@@ -27,7 +27,7 @@ class SquareNode : SKSpriteNode {
             fatalError("init(coder:) has not been implemented")
         }
     
-    func hihglighSelected (){
+    func highlighSelected (){
         self.color = .yellow
     }
     

@@ -16,7 +16,7 @@ class SquareNode : SKSpriteNode {
     init (row : Int , col: Int, size: CGSize , isLight:Bool){
         self.row = row
         self.col = col
-        self.defaultColor = isLight ? .white : .black
+        self.defaultColor = isLight ? .white : .darkGray
         super.init(texture: nil, color: defaultColor, size: size)
         
         self.name = "square-\(col)-\(row)"

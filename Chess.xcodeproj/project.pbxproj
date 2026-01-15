@@ -7,7 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		860411172F16A59E00AD4F4C /* ChessKit in Frameworks */ = {isa = PBXBuildFile; productRef = 860411162F16A59E00AD4F4C /* ChessKit */; };
+		86B781042F192A3B003AF0DF /* SwiftChess in Frameworks */ = {isa = PBXBuildFile; productRef = 86B781032F192A3B003AF0DF /* SwiftChess */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -27,7 +27,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				860411172F16A59E00AD4F4C /* ChessKit in Frameworks */,
+				86B781042F192A3B003AF0DF /* SwiftChess in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -70,7 +70,7 @@
 			);
 			name = Chess;
 			packageProductDependencies = (
-				860411162F16A59E00AD4F4C /* ChessKit */,
+				86B781032F192A3B003AF0DF /* SwiftChess */,
 			);
 			productName = Chess;
 			productReference = 861F2A162F0FF9F800F12CCF /* Chess.app */;
@@ -101,7 +101,7 @@
 			mainGroup = 861F2A0D2F0FF9F800F12CCF;
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
-				860411152F16A59E00AD4F4C /* XCRemoteSwiftPackageReference "chesskit-swift" */,
+				86B781022F192A3B003AF0DF /* XCRemoteSwiftPackageReference "SwiftChess" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 861F2A172F0FF9F800F12CCF /* Products */;
@@ -343,21 +343,21 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
-		860411152F16A59E00AD4F4C /* XCRemoteSwiftPackageReference "chesskit-swift" */ = {
+		86B781022F192A3B003AF0DF /* XCRemoteSwiftPackageReference "SwiftChess" */ = {
 			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/chesskit-app/chesskit-swift";
+			repositoryURL = "https://github.com/SteveBarnegren/SwiftChess";
 			requirement = {
 				kind = upToNextMajorVersion;
-				minimumVersion = 0.17.0;
+				minimumVersion = 1.1.2;
 			};
 		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
-		860411162F16A59E00AD4F4C /* ChessKit */ = {
+		86B781032F192A3B003AF0DF /* SwiftChess */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = 860411152F16A59E00AD4F4C /* XCRemoteSwiftPackageReference "chesskit-swift" */;
-			productName = ChessKit;
+			package = 86B781022F192A3B003AF0DF /* XCRemoteSwiftPackageReference "SwiftChess" */;
+			productName = SwiftChess;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

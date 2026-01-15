@@ -20,6 +20,12 @@ class BoardNode : SKNode {
         setPositionFromFen(fen)
     }
     
+    init(squareSize : CGFloat ) {
+        self.squareSize = squareSize
+        super.init()
+        createGrid()
+    }
+    
     required init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }

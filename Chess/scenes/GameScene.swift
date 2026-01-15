@@ -8,23 +8,19 @@
 import SpriteKit
 import SwiftUI
 import GameplayKit
-import ChessKit
 
 class GameScene: SKScene {
     
+    var chessGameManager : ChessGameManager = ChessGameManager()
     var chessBoard : BoardNode!
-    var game : Game?
     var selectedPiece : PieceNode?
     var draggingPiece : PieceNode?
     var dragStartPosition: CGPoint?
     var hasDragged : Bool = false
     var initialposition: CGPoint?
+    var availableMoves : [(Int, Int)] = []
     
     override func didMove(to view: SKView) {
-        
-        //game logic engine
-        self.game = Game()
-        
         
         
         backgroundColor = SKColor(red: 226/255, green: 205/255, blue: 181/255, alpha: 1)
@@ -32,13 +28,10 @@ class GameScene: SKScene {
         let margin: CGFloat = 20.0
         let availableWidth = screenWidth - (margin * 2)
         let squareSize = availableWidth / 8
-                
-        guard let fenString = game?.startingPosition?.fen else {
-                print("Error: Could not retrieve FEN string.")
-                return
-            }
+
+        let fen = chessGameManager.currentFEN
         
-        chessBoard = BoardNode(squareSize: squareSize, fen : fenString)
+        chessBoard = BoardNode(squareSize: squareSize, fen: fen)
                 
         // 3. Center it
         chessBoard.position = CGPoint(x: self.frame.midX, y: self.frame.midY)
@@ -64,10 +57,14 @@ class GameScene: SKScene {
             piece.setScale(1.1)
         }
         
+        
         if let square  = touchedSquare{
-            square.highlighSelected()
-            
+            self.availableMoves  = chessGameManager.getPieceMoves(row: square.row, col: square.col)
+            for move in availableMoves {
+                chessBoard.square(at: move )?.showMoveIndicator()
+            }
         }
+        
         
         
     }
@@ -97,7 +94,9 @@ class GameScene: SKScene {
                 selectPiece(piece)
             }
             
-            
+            for move in availableMoves {
+                chessBoard.square(at: move )?.removeMoveInidcator()
+            }
             draggingPiece = nil
             dragStartPosition = nil
             return

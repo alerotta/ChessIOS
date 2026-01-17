@@ -13,12 +13,11 @@ class GameScene: SKScene {
     
     var chessGameManager : ChessGameManager = ChessGameManager()
     var chessBoard : BoardNode!
+    var selectedSquare : SquareNode?
     var selectedPiece : PieceNode?
-    var draggingPiece : PieceNode?
-    var dragStartPosition: CGPoint?
-    var hasDragged : Bool = false
     var initialposition: CGPoint?
     var availableMoves : [(Int, Int)] = []
+    
     
     override func didMove(to view: SKView) {
         
@@ -28,129 +27,82 @@ class GameScene: SKScene {
         let margin: CGFloat = 20.0
         let availableWidth = screenWidth - (margin * 2)
         let squareSize = availableWidth / 8
-
-        let fen = chessGameManager.currentFEN
         
-        chessBoard = BoardNode(squareSize: squareSize, fen: fen)
-                
-        // 3. Center it
+        
+        chessBoard = BoardNode(squareSize: squareSize)
+        setupPosition()
+        chessBoard.zRotation += .pi
         chessBoard.position = CGPoint(x: self.frame.midX, y: self.frame.midY)
-                
-        // 4. Add to scene
         addChild(chessBoard)
     }
     
-
+    
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
+        
         guard let touch = touches.first else { return }
         let location = touch.location(in: self.chessBoard)
-        hasDragged = false
         let nodes = chessBoard.nodes(at:location)
+        
         
         let touchedPiece = nodes.first(where: { $0 is PieceNode }) as? PieceNode
         let touchedSquare = nodes.first(where: { $0 is SquareNode }) as? SquareNode
         
-        if let piece = touchedPiece{
-            draggingPiece = piece
-            dragStartPosition = piece.position
-            piece.zPosition = 100
-            piece.setScale(1.1)
-        }
-        
-        
-        if let square  = touchedSquare{
-            self.availableMoves  = chessGameManager.getPieceMoves(row: square.row, col: square.col)
-            for move in availableMoves {
-                chessBoard.square(at: move )?.showMoveIndicator()
-            }
-        }
-        
-        
-        
-    }
-    
-    override func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent?) {
-        guard let touch = touches.first, let piece = draggingPiece else { return }
-        let location = touch.location(in: chessBoard)
-        piece.position = location
-        hasDragged = true
-    }
-    
-    override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
-        guard let touch = touches.first else { return }
-        let location = touch.location(in: chessBoard)
-        
-        if let piece = draggingPiece {
-            piece.zPosition = 10 // Reset Z
-            piece.setScale(1.0)  // Reset Scale
+        if let square = touchedSquare{
             
-            if hasDragged {
-               
-                dropPiece(piece, at: location)
-                selectedPiece = nil
-            } else {
+            //full square touched
+            if let piece = touchedPiece{
                 
-                piece.position = dragStartPosition ?? piece.position
-                selectPiece(piece)
-            }
-            
-            for move in availableMoves {
-                chessBoard.square(at: move )?.removeMoveInidcator()
-            }
-            draggingPiece = nil
-            dragStartPosition = nil
-            return
-        }
-        
-        if let currentSelection = selectedPiece, draggingPiece == nil {
-            if let (col, row) = chessBoard.gridPosition(at: location),
-               let targetSquare = chessBoard.square(at: (col: col, row: row)) {
-                
-                // Move the selected piece to this tapped square
-                movePiece(currentSelection, to: targetSquare)
-                
-                // Deselect after moving
-                selectedPiece = nil
-            }
-        }
-    }
-        
-        // HELPER 1: Handle dropping a dragged piece
-        func dropPiece(_ piece: PieceNode, at point: CGPoint) {
-            if let (col, row) = chessBoard.gridPosition(at: point),
-               let targetSquare = chessBoard.square(at: (col: col, row: row)) {
-                
-                // Valid Drop: Snap to square
-                // NOTE: In the future, check isValidMove() here
-                piece.run(SKAction.move(to: targetSquare.position, duration: 0.1))
-                
-            } else {
-                // Invalid Drop (off board): Return to start
-                if let start = dragStartPosition {
-                    piece.run(SKAction.move(to: start, duration: 0.2))
+                // first time selection
+                if selectedPiece == nil{
+                    selectedPiece = piece
+                    selectedSquare = square
+                    selectedSquare?.hihglight()
+                }
+                //double tap the same -> deselect
+                else if piece === selectedPiece{
+                    selectedPiece = nil
+                    selectedSquare?.resetState()
+                    selectedSquare = nil
+                }
+                else if piece.color == selectedPiece?.color {
+                    selectedSquare?.resetState()
+                    selectedPiece = piece
+                    selectedSquare = square
+                    selectedSquare?.hihglight()
+                }
+                else if piece.color != selectedPiece?.color{
+                    // check moves and move
                 }
             }
-        }
-        
-        // HELPER 2: Handle Tap-Tap moving
-        func movePiece(_ piece: PieceNode, to targetSquare: SquareNode) {
-            // Animate the move
-            let action = SKAction.move(to: targetSquare.position, duration: 0.2)
-            action.timingMode = .easeInEaseOut
-            piece.run(action)
-        }
-        
-        // HELPER 3: Handle Selection logic
-    func selectPiece(_ piece: PieceNode) {
-            // If we tap the SAME piece twice, deselect it
-            if piece == selectedPiece {
-                selectedPiece = nil
-            } else {
-                // Otherwise, select the new piece
-                selectedPiece = piece
+            // empty square touched
+            else{
+                if selectedPiece != nil {
+                    //check move and make it
+                    let moveAction = SKAction.move(to: square.position, duration: 0.1)
+                    selectedPiece?.run(moveAction)
+                    selectedPiece = nil
+                    selectedSquare?.resetState()
+                    selectedSquare=nil
+                }
+                else {return}
             }
+            
         }
-    
+        else{
+            selectedSquare?.resetState()
+            selectedPiece = nil
+            selectedSquare = nil
+        }
+        
+    }
+        
+    private func setupPosition (){
+        let piecesInfos = chessGameManager.getPiecesInfo()
+        for pieceInfo in piecesInfos{
+            chessBoard.spawnPiece(type: pieceInfo.type, pieceColor:  pieceInfo.color, at: (col: pieceInfo.col, row: pieceInfo.row))
+        }
+        
+    }
     
 }
 

@@ -16,70 +16,49 @@ class ChessGameManager{
         self.game = Game(firstPlayer: whitePlayer, secondPlayer: blackPlayer)
     }
     
-    var currentFEN : String {
-        return generateFEN()
-    }
     
-    private func generateFEN() -> String {
-        var fen = ""
-        var stingRow = ""
-        var emptySpaceCounter = 0
+    
+    func getPiecesInfo() -> [(row : Int , col : Int , color : PieceColor , type : PieceType)]  {
+        var info : [(row : Int , col : Int , color : PieceColor , type : PieceType)] = []
         
-        for (index , sq) in game.board.squares.reversed().enumerated() {
-            
+        for sq in game.board.squares {
             if let piece = sq.piece{
-                //piecefoud
-                var pieceChar : String
                 
-                if emptySpaceCounter != 0{
-                    stingRow += "\(emptySpaceCounter)"
+                let c : PieceColor
+                switch piece.color {
+                case .black : c = PieceColor.black
+                case .white : c = PieceColor.white
                 }
-                switch piece.type{
-                    case .pawn : pieceChar = "p"
-                    case .knight : pieceChar = "n"
-                    case .bishop : pieceChar = "b"
-                    case .rook : pieceChar = "r"
-                    case .king : pieceChar = "k"
-                    case .queen : pieceChar = "q"
-                    }
-                if piece.color == .white {
-                    pieceChar = pieceChar.uppercased()
+                
+                let t : PieceType
+                switch piece.type {
+                case .pawn : t = PieceType.pawn
+                case .rook : t = PieceType.rook
+                case .bishop : t = PieceType.bishop
+                case .knight : t = PieceType.knight
+                case .king : t = PieceType.king
+                case .queen : t = PieceType.queen
                 }
-                stingRow += pieceChar
+                
+                info.append((
+                    row: piece.location.y,
+                    col: piece.location.x,
+                    color : c,
+                    type: t
+                ))
             }
-            else{
-                //emptyspace
-                emptySpaceCounter += 1
-            }
-            
-            if ((index + 1) % 8) == 0 {
-                if emptySpaceCounter != 0 {
-                    stingRow += "\(emptySpaceCounter)"
-                }
-                fen += stingRow.reversed()
-                stingRow = ""
-                fen += "/"
-                emptySpaceCounter = 0
-            }
-            
         }
-        fen.removeLast()
-        return fen
+        return info
     }
+     
     
-    private func calculateIndex (row : Int , col : Int) -> Int {
-        let rrow = 7 - row
-        let rcol = 7 - col
-        return rcol + (8 * rrow)
-    }
 
     
     func getPieceMoves (row : Int , col : Int) -> [(row: Int , col : Int )]{
         var res : [(Int, Int)] = []
-        let index = calculateIndex(row: row, col: col)
-        let moves = game.board.possibleMoveLocationsForPiece(atLocation: BoardLocation(index: index))
+        let moves = game.board.possibleMoveLocationsForPiece(atLocation: BoardLocation(x: col, y: row))
         for move in moves {
-            res.append(( 7 - move.x, 7 - move.y ))
+            res.append((move.x,move.y))
         }
         return res
     }

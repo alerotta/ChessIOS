@@ -16,6 +16,7 @@ class SquareNode : SKSpriteNode {
     init (row : Int , col: Int, size: CGSize , isLight:Bool){
         self.row = row
         self.col = col
+        
         let lightColor = SKColor(red: 249/255, green: 243/255, blue: 223/255, alpha: 1)
         let darkColor = SKColor(red: 86/255, green: 123/255, blue: 92/255, alpha: 1)
         self.defaultColor = isLight ? lightColor : darkColor
@@ -23,6 +24,14 @@ class SquareNode : SKSpriteNode {
         
         self.name = "square-\(col)-\(row)"
         self.zPosition = 0
+        
+        //border definition
+        let border = SKShapeNode(rectOf: size)
+        border.strokeColor = .black
+        border.lineWidth = 1
+        border.fillColor = .clear
+        border.zPosition = 1
+        self.addChild(border)
     }
     
     required init?(coder aDecoder: NSCoder) {
@@ -46,10 +55,9 @@ class SquareNode : SKSpriteNode {
         moveIndicator = nil
     }
     
-    func highlighSelected (){
+    func hihglight (){
         self.color = .yellow
     }
-    
     func resetState(){
         self.color = defaultColor
     }

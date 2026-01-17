@@ -6,9 +6,12 @@
 //
 import SwiftChess
 
-class ChessGameManager{
+
+class ChessGameManager {
     
     private var game : Game
+    
+
     
     init(){
         let whitePlayer = Human(color: .white)
@@ -51,9 +54,7 @@ class ChessGameManager{
         return info
     }
      
-    
 
-    
     func getPieceMoves (row : Int , col : Int) -> [(row: Int , col : Int )]{
         var res : [(Int, Int)] = []
         let moves = game.board.possibleMoveLocationsForPiece(atLocation: BoardLocation(x: col, y: row))
@@ -62,6 +63,19 @@ class ChessGameManager{
         }
         return res
     }
+    
+    func makeMove (fromCol : Int? , fromRow: Int?, toCol : Int, toRow: Int){
+        guard let fromCol else {return}
+        guard let fromRow else {return}
+        if let player = game.currentPlayer as? Human {
+            let currentLocation = BoardLocation(x: fromCol, y: fromRow)
+            let newLocation = BoardLocation(x: toCol, y: toRow)
+            try! player.movePiece(from: currentLocation,to: newLocation)
+            
+        }
+    }
+    
+    
     
     
 }

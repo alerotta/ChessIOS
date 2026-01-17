@@ -9,14 +9,15 @@ import SpriteKit
 import SwiftUI
 import GameplayKit
 
+
 class GameScene: SKScene {
     
     var chessGameManager : ChessGameManager = ChessGameManager()
     var chessBoard : BoardNode!
     var selectedSquare : SquareNode?
     var selectedPiece : PieceNode?
-    var initialposition: CGPoint?
     var availableMoves : [(Int, Int)] = []
+    var initialposition: CGPoint?
     
     
     override func didMove(to view: SKView) {
@@ -27,6 +28,7 @@ class GameScene: SKScene {
         let margin: CGFloat = 20.0
         let availableWidth = screenWidth - (margin * 2)
         let squareSize = availableWidth / 8
+        
         
         
         chessBoard = BoardNode(squareSize: squareSize)
@@ -57,18 +59,35 @@ class GameScene: SKScene {
                     selectedPiece = piece
                     selectedSquare = square
                     selectedSquare?.hihglight()
+                    availableMoves = chessGameManager.getPieceMoves(row: square.row, col: square.col)
+                    for move in availableMoves{
+                        chessBoard.square(at: (col: move.0, row: move.1))?.showMoveIndicator()
+                        
+                    }
                 }
                 //double tap the same -> deselect
                 else if piece === selectedPiece{
                     selectedPiece = nil
                     selectedSquare?.resetState()
                     selectedSquare = nil
+                    for move in availableMoves {
+                        chessBoard.square(at: (col: move.0, row: move.1))?.removeMoveInidcator()
+                    }
+                    availableMoves = []
                 }
                 else if piece.color == selectedPiece?.color {
                     selectedSquare?.resetState()
+                    for move in availableMoves {
+                        chessBoard.square(at: (col: move.0, row: move.1))?.removeMoveInidcator()
+                    }
+                    availableMoves = []
                     selectedPiece = piece
                     selectedSquare = square
                     selectedSquare?.hihglight()
+                    availableMoves = chessGameManager.getPieceMoves(row: square.row, col: square.col)
+                    for move in availableMoves{
+                        chessBoard.square(at: (col: move.0, row: move.1))?.showMoveIndicator()
+                    }
                 }
                 else if piece.color != selectedPiece?.color{
                     // check moves and move
@@ -78,11 +97,21 @@ class GameScene: SKScene {
             else{
                 if selectedPiece != nil {
                     //check move and make it
+                    
                     let moveAction = SKAction.move(to: square.position, duration: 0.1)
+                    
+                    chessGameManager.makeMove(fromCol: selectedSquare?.col,
+                                              fromRow: selectedSquare?.row,
+                                              toCol: square.col,
+                                              toRow: square.row)
                     selectedPiece?.run(moveAction)
                     selectedPiece = nil
                     selectedSquare?.resetState()
                     selectedSquare=nil
+                    for move in availableMoves {
+                        chessBoard.square(at: (col: move.0, row: move.1))?.removeMoveInidcator()
+                    }
+                    availableMoves = []
                 }
                 else {return}
             }

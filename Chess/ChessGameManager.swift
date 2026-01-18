@@ -11,6 +11,13 @@ class ChessGameManager {
     
     private var game : Game
     
+    var onColorUpdate: ((PieceColor) -> Void)?
+    var turnColor : Color = .white{
+        didSet {
+            handleColorUpdate(turnColor)
+        }
+    }
+    
 
     
     init(){
@@ -71,8 +78,19 @@ class ChessGameManager {
             let currentLocation = BoardLocation(x: fromCol, y: fromRow)
             let newLocation = BoardLocation(x: toCol, y: toRow)
             try! player.movePiece(from: currentLocation,to: newLocation)
+            turnColor = game.currentPlayer.color
             
         }
+    }
+    
+    private func handleColorUpdate (_ color : Color){
+        let c : PieceColor
+        switch color {
+        case .white : c = PieceColor.white
+        case .black : c = PieceColor.black
+        }
+        onColorUpdate?(c)
+        
     }
     
     

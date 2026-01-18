@@ -16,11 +16,14 @@ class GameScene: SKScene {
     var chessBoard : BoardNode!
     var selectedSquare : SquareNode?
     var selectedPiece : PieceNode?
-    var availableMoves : [(Int, Int)] = []
+    var availableMoves : [(Int, Int)]?
     var initialposition: CGPoint?
     
-    
+
+        
     override func didMove(to view: SKView) {
+        
+        
         
         
         backgroundColor = SKColor(red: 226/255, green: 205/255, blue: 181/255, alpha: 1)
@@ -28,6 +31,10 @@ class GameScene: SKScene {
         let margin: CGFloat = 20.0
         let availableWidth = screenWidth - (margin * 2)
         let squareSize = availableWidth / 8
+        
+        self.chessGameManager.onColorUpdate = {[weak self] color in
+            self?.updateColor(color: color)
+        }
         
         
         
@@ -59,35 +66,23 @@ class GameScene: SKScene {
                     selectedPiece = piece
                     selectedSquare = square
                     selectedSquare?.hihglight()
-                    availableMoves = chessGameManager.getPieceMoves(row: square.row, col: square.col)
-                    for move in availableMoves{
-                        chessBoard.square(at: (col: move.0, row: move.1))?.showMoveIndicator()
-                        
-                    }
+                    highlightPossibleMoves(row: square.row, col: square.col)
                 }
                 //double tap the same -> deselect
                 else if piece === selectedPiece{
                     selectedPiece = nil
                     selectedSquare?.resetState()
                     selectedSquare = nil
-                    for move in availableMoves {
-                        chessBoard.square(at: (col: move.0, row: move.1))?.removeMoveInidcator()
-                    }
-                    availableMoves = []
+                    removeHighlightPossibleMoves(availableMoves: availableMoves)
                 }
                 else if piece.color == selectedPiece?.color {
                     selectedSquare?.resetState()
-                    for move in availableMoves {
-                        chessBoard.square(at: (col: move.0, row: move.1))?.removeMoveInidcator()
-                    }
-                    availableMoves = []
+                    removeHighlightPossibleMoves(availableMoves: availableMoves)
                     selectedPiece = piece
                     selectedSquare = square
                     selectedSquare?.hihglight()
-                    availableMoves = chessGameManager.getPieceMoves(row: square.row, col: square.col)
-                    for move in availableMoves{
-                        chessBoard.square(at: (col: move.0, row: move.1))?.showMoveIndicator()
-                    }
+                    highlightPossibleMoves(row: square.row, col: square.col)
+
                 }
                 else if piece.color != selectedPiece?.color{
                     // check moves and move
@@ -108,10 +103,7 @@ class GameScene: SKScene {
                     selectedPiece = nil
                     selectedSquare?.resetState()
                     selectedSquare=nil
-                    for move in availableMoves {
-                        chessBoard.square(at: (col: move.0, row: move.1))?.removeMoveInidcator()
-                    }
-                    availableMoves = []
+                    removeHighlightPossibleMoves(availableMoves: availableMoves)
                 }
                 else {return}
             }
@@ -124,13 +116,34 @@ class GameScene: SKScene {
         }
         
     }
+    
+    private func highlightPossibleMoves(row : Int, col : Int){
+        
+        availableMoves = chessGameManager.getPieceMoves(row: row, col: col)
+        guard let moves = availableMoves else { return }
+        for move in moves {
+            chessBoard.square(at: (col: move.0, row: move.1))?.showMoveIndicator()
+        }
+        
+    }
+    
+    private func removeHighlightPossibleMoves (availableMoves : [(Int,Int)]? ) {
+        guard let moves = availableMoves else { return }
+        for move in moves {
+            chessBoard.square(at: (col: move.0, row: move.1))?.removeMoveInidcator()
+            self.availableMoves = nil
+        }
+    }
         
     private func setupPosition (){
         let piecesInfos = chessGameManager.getPiecesInfo()
         for pieceInfo in piecesInfos{
             chessBoard.spawnPiece(type: pieceInfo.type, pieceColor:  pieceInfo.color, at: (col: pieceInfo.col, row: pieceInfo.row))
         }
-        
+    }
+    
+    private func updateColor (color : PieceColor ){
+        print ("color is changed \(color)")
     }
     
 }

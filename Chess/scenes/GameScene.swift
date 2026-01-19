@@ -14,10 +14,13 @@ class GameScene: SKScene {
     
     var chessGameManager : ChessGameManager = ChessGameManager()
     var chessBoard : BoardNode!
+    var topBackgroundPart : SKSpriteNode!
+    var bottomBackgroundPart : SKSpriteNode!
     var selectedSquare : SquareNode?
     var selectedPiece : PieceNode?
     var availableMoves : [(Int, Int)]?
     var initialposition: CGPoint?
+    var turnColor : PieceColor = .white
     
 
         
@@ -33,13 +36,13 @@ class GameScene: SKScene {
         let squareSize = availableWidth / 8
         
         self.chessGameManager.onColorUpdate = {[weak self] color in
-            self?.updateColor(color: color)
+            self?.updateTurnVisuals(color: color)
+            self?.turnColor = color
         }
-        
-        
         
         chessBoard = BoardNode(squareSize: squareSize)
         setupPosition()
+        setupBackgroundZones()
         chessBoard.zRotation += .pi
         chessBoard.position = CGPoint(x: self.frame.midX, y: self.frame.midY)
         addChild(chessBoard)
@@ -61,8 +64,9 @@ class GameScene: SKScene {
             //full square touched
             if let piece = touchedPiece{
                 
+                
                 // first time selection
-                if selectedPiece == nil{
+                if (selectedPiece == nil) && (piece.pieceColor == turnColor) {
                     selectedPiece = piece
                     selectedSquare = square
                     selectedSquare?.hihglight()
@@ -75,7 +79,7 @@ class GameScene: SKScene {
                     selectedSquare = nil
                     removeHighlightPossibleMoves(availableMoves: availableMoves)
                 }
-                else if piece.color == selectedPiece?.color {
+                else if piece.pieceColor == selectedPiece?.pieceColor {
                     selectedSquare?.resetState()
                     removeHighlightPossibleMoves(availableMoves: availableMoves)
                     selectedPiece = piece
@@ -84,7 +88,7 @@ class GameScene: SKScene {
                     highlightPossibleMoves(row: square.row, col: square.col)
 
                 }
-                else if piece.color != selectedPiece?.color{
+                else if piece.pieceColor != selectedPiece?.pieceColor{
                     // check moves and move
                 }
             }
@@ -144,6 +148,55 @@ class GameScene: SKScene {
     
     private func updateColor (color : PieceColor ){
         print ("color is changed \(color)")
+    }
+    
+    private func setupBackgroundZones () {
+        let size = self.size
+        let halfHeight = size.height / 2
+        
+        topBackgroundPart = SKSpriteNode(color: .darkGray, size: CGSize(width: size.width, height: halfHeight))
+            
+        topBackgroundPart.position = CGPoint(x: size.width * 0.5, y: size.height * 0.75)
+            topBackgroundPart.zPosition = -10 // Place behind the board (assuming board is 0 or higher)
+            addChild(topBackgroundPart)
+            
+        
+        bottomBackgroundPart = SKSpriteNode(color: .white, size: CGSize(width: size.width, height: halfHeight))
+        bottomBackgroundPart.position = CGPoint(x: size.width * 0.5, y: size.height * 0.25)
+            bottomBackgroundPart.zPosition = -10
+            addChild(bottomBackgroundPart)
+    }
+    
+    func updateTurnVisuals(color : PieceColor) {
+        // Define how an "Active" and "Inactive" zone should look
+        let activeAlpha: CGFloat = 0.8
+        let inactiveAlpha: CGFloat = 0.2
+        
+        // Optional: Change color tint if desired
+        let activeColor: UIColor = .systemBlue // Or keep original
+        let inactiveColor: UIColor = .gray
+        
+        if color == PieceColor.white {
+            // Highlight Bottom (White), Deactivate Top (Black)
+            
+            // 1. Animate the change for a smooth transition
+            bottomBackgroundPart.run(.fadeAlpha(to: activeAlpha, duration: 0.3))
+            topBackgroundPart.run(.fadeAlpha(to: inactiveAlpha, duration: 0.3))
+            
+            // Optional: If you want to change colors too
+            bottomBackgroundPart.color = activeColor
+            topBackgroundPart.color = inactiveColor
+            
+        } else {
+            // Highlight Top (Black), Deactivate Bottom (White)
+            
+            topBackgroundPart.run(.fadeAlpha(to: activeAlpha, duration: 0.3))
+            bottomBackgroundPart.run(.fadeAlpha(to: inactiveAlpha, duration: 0.3))
+            
+            // Optional: Color change
+            topBackgroundPart.color = activeColor
+            bottomBackgroundPart.color = inactiveColor
+        }
     }
     
 }

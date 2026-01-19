@@ -93,6 +93,13 @@ class ChessGameManager {
         
     }
     
+    func getTurnColor () -> PieceColor {
+        if turnColor == .white{
+            return PieceColor.white
+        }
+        else {return PieceColor.black}
+    }
+    
     
     
     

@@ -6,11 +6,27 @@
 //
 import SwiftChess
 
+struct MoveResult {
+    let origin : (x : Int, y: Int)
+    let destination : (x : Int, y: Int)
+    let capturedSquare : (x : Int, y: Int)?
+    let isPromotion : Bool
+    let isCastling : Bool
+    
+    init (origin : (x : Int, y: Int),destination : (x : Int, y: Int), capturedSquare : (x : Int, y: Int)?, isPromotion : Bool,  isCastling : Bool ) {
+        self.origin = origin
+        self.destination = destination
+        self.capturedSquare = capturedSquare
+        self.isPromotion = isPromotion
+        self.isCastling = isCastling
+        
+    }
+}
+
 
 class ChessGameManager {
     
     private var game : Game
-    
     var onColorUpdate: ((PieceColor) -> Void)?
     var turnColor : Color = .white{
         didSet {
@@ -71,17 +87,55 @@ class ChessGameManager {
         return res
     }
     
-    func makeMove (fromCol : Int? , fromRow: Int?, toCol : Int, toRow: Int){
-        guard let fromCol else {return}
-        guard let fromRow else {return}
+    func makeMove (fromCol : Int , fromRow: Int, toCol : Int, toRow: Int) -> MoveResult? {
         if let player = game.currentPlayer as? Human {
+            
             let currentLocation = BoardLocation(x: fromCol, y: fromRow)
             let newLocation = BoardLocation(x: toCol, y: toRow)
-            try! player.movePiece(from: currentLocation,to: newLocation)
-            turnColor = game.currentPlayer.color
+            let capturedPiecePosition : (x : Int , y : Int)?
             
+            
+            do {
+                //try to make a move
+                try player.movePiece(from: currentLocation,to: newLocation)
+                //modify the color of the turn
+                turnColor = game.currentPlayer.color
+                //check if there was a capture
+                if isCaptured(x: toCol, y: toRow){
+                    capturedPiecePosition = (toCol,toRow)
+                    
+                    //retun moveresult
+                    return MoveResult (
+                        origin: (fromCol,fromRow),
+                        destination: (toCol,toRow),
+                        capturedSquare: capturedPiecePosition,
+                        isPromotion: false,
+                        isCastling: false)
+                }
+                else{
+                    return MoveResult (
+                        origin: (fromCol,fromRow),
+                        destination: (toCol,toRow),
+                        capturedSquare: nil,
+                        isPromotion: false,
+                        isCastling: false)
+                }
+            }
+            catch{
+                return nil
+            }
         }
+        return nil
     }
+    
+    private func isCaptured (x : Int , y : Int) -> Bool {
+        let sq  = game.board.getPiece(at: BoardLocation(x: x, y: y))
+        if sq == nil {
+            return false
+        }
+        return true
+    }
+    
     
     private func handleColorUpdate (_ color : Color){
         let c : PieceColor
@@ -93,12 +147,6 @@ class ChessGameManager {
         
     }
     
-    func getTurnColor () -> PieceColor {
-        if turnColor == .white{
-            return PieceColor.white
-        }
-        else {return PieceColor.black}
-    }
     
     
     

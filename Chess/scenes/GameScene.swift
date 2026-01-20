@@ -46,81 +46,94 @@ class GameScene: SKScene {
         chessBoard.zRotation += .pi
         chessBoard.position = CGPoint(x: self.frame.midX, y: self.frame.midY)
         addChild(chessBoard)
-    }
-    
+        
+        }
     
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
-        
         guard let touch = touches.first else { return }
         let location = touch.location(in: self.chessBoard)
         let nodes = chessBoard.nodes(at:location)
-        
-        
         let touchedPiece = nodes.first(where: { $0 is PieceNode }) as? PieceNode
         let touchedSquare = nodes.first(where: { $0 is SquareNode }) as? SquareNode
         
+        var moveResult: MoveResult?
+        
         if let square = touchedSquare{
             
-            //full square touched
             if let piece = touchedPiece{
                 
+                // little bug in this condition
+                if selectedSquare == nil {
+                    if piece.pieceColor == turnColor{
+                        selectedPiece = piece
+                        selectedSquare = square
+                        square.hihglight()
+                        //highlightPossibleMoves(row: square.row, col: square.col)
+                    }
+                }
+                else {
+                    moveResult = chessGameManager.makeMove(fromCol: selectedSquare!.col,
+                                                           fromRow: selectedSquare!.row,
+                                                           toCol: square.col,
+                                                           toRow: square.row)
+                    if moveResult != nil {
+                        let moveAction = SKAction.move(to: square.position, duration: 0.1)
+                        selectedPiece?.run(moveAction)
+                        piece.removeFromParent()
+                        selectedPiece = nil
+                        selectedSquare?.resetState()
+                        selectedSquare = nil
+                        
+                    }
+                    else{
+                        selectedPiece = nil
+                        selectedSquare?.resetState()
+                        selectedSquare = nil
+                    }
+                }
                 
-                // first time selection
-                if (selectedPiece == nil) && (piece.pieceColor == turnColor) {
-                    selectedPiece = piece
-                    selectedSquare = square
-                    selectedSquare?.hihglight()
-                    highlightPossibleMoves(row: square.row, col: square.col)
-                }
-                //double tap the same -> deselect
-                else if piece === selectedPiece{
-                    selectedPiece = nil
-                    selectedSquare?.resetState()
-                    selectedSquare = nil
-                    removeHighlightPossibleMoves(availableMoves: availableMoves)
-                }
-                else if piece.pieceColor == selectedPiece?.pieceColor {
-                    selectedSquare?.resetState()
-                    removeHighlightPossibleMoves(availableMoves: availableMoves)
-                    selectedPiece = piece
-                    selectedSquare = square
-                    selectedSquare?.hihglight()
-                    highlightPossibleMoves(row: square.row, col: square.col)
-
-                }
-                else if piece.pieceColor != selectedPiece?.pieceColor{
-                    // check moves and move
-                }
             }
-            // empty square touched
             else{
+                
                 if selectedPiece != nil {
-                    //check move and make it
+                    //move +no eat+ reset to initial state
                     
-                    let moveAction = SKAction.move(to: square.position, duration: 0.1)
+                    moveResult = chessGameManager.makeMove(fromCol: selectedSquare!.col,
+                                                           fromRow: selectedSquare!.row,
+                                                           toCol: square.col,
+                                                           toRow: square.row)
+                    if moveResult != nil {
+                        let moveAction = SKAction.move(to: square.position, duration: 0.1)
+                        selectedPiece?.run(moveAction)
+                        selectedPiece = nil
+                        selectedSquare?.resetState()
+                        selectedSquare = nil
+                        
+                    }
+                    else{
+                        selectedPiece = nil
+                        selectedSquare?.resetState()
+                        selectedSquare = nil
+                    }
                     
-                    chessGameManager.makeMove(fromCol: selectedSquare?.col,
-                                              fromRow: selectedSquare?.row,
-                                              toCol: square.col,
-                                              toRow: square.row)
-                    selectedPiece?.run(moveAction)
-                    selectedPiece = nil
-                    selectedSquare?.resetState()
-                    selectedSquare=nil
-                    removeHighlightPossibleMoves(availableMoves: availableMoves)
                 }
-                else {return}
+                
             }
             
         }
         else{
-            selectedSquare?.resetState()
+            //reset to nothing selected
             selectedPiece = nil
+            selectedSquare?.resetState()
             selectedSquare = nil
         }
         
     }
     
+        
+       
+    
+
     private func highlightPossibleMoves(row : Int, col : Int){
         
         availableMoves = chessGameManager.getPieceMoves(row: row, col: col)

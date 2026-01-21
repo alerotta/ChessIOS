@@ -40,7 +40,7 @@ class GameScene: SKScene {
         let squareSize = availableWidth / 8
         
         self.chessGameManager.onColorUpdate = {[weak self] color in
-            self?.updateTurnVisuals(color: color)
+            //self?.updateTurnVisuals(color: color)
             self?.turnColor = color
         }
         
@@ -55,9 +55,6 @@ class GameScene: SKScene {
         setupTimerLabels()
         setupObservers()
         
-        gameOverPanel = GameOverNode(sceneSize: self.size, title: "AAA", message: "test1")
-        gameOverPanel.position = CGPoint(x: self.frame.midX, y: self.frame.midY)
-        //addChild(gameOverPanel)
         
         }
     
@@ -225,11 +222,13 @@ class GameScene: SKScene {
     func setupTimerLabels (){
         
         whiteTimerLabel = SKLabelNode(fontNamed: "Courier-Bold")
+        whiteTimerLabel.text = formatTime(chessGameManager.whiteTime)
         whiteTimerLabel.fontSize = 24
         whiteTimerLabel.fontColor = .black
         bottomBackgroundPart.addChild(whiteTimerLabel)
         
         blackTimerLabel = SKLabelNode(fontNamed: "Courier-Bold")
+        blackTimerLabel.text = formatTime(chessGameManager.whiteTime)
         blackTimerLabel.fontSize = 24
         blackTimerLabel.fontColor = .white
         blackTimerLabel.zRotation = .pi
@@ -242,6 +241,17 @@ class GameScene: SKScene {
                             self?.whiteTimerLabel.text = self?.formatTime(whiteTime)
                             self?.blackTimerLabel.text = self?.formatTime(blackTime)
                         }
+        }
+        
+        chessGameManager.onGameOver = { [weak self] result in
+            guard let self = self else {return}
+            let panel = GameOverNode(sceneSize: self.size,
+                                     title: "Game Over",
+                                     message: result)
+            panel.position = CGPoint(x: self.frame.midX, y: self.frame.midY)
+            self.addChild(panel)
+
+            
         }
     }
     

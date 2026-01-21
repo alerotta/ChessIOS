@@ -28,6 +28,7 @@ struct MoveResult {
 class ChessGameManager {
     
     private var game : Game
+    private var isGameActive : Bool = true
     var onColorUpdate: ((PieceColor) -> Void)?
     var turnColor : Color = .white{
         didSet {
@@ -41,7 +42,7 @@ class ChessGameManager {
     var blackTime : TimeInterval = 300
     
     var onTimeUpdate : ((_ whiteTime: TimeInterval, _ blackTime: TimeInterval) -> Void)?
-    var onTimeExpired : ((_ winner : String) -> Void)?
+    var onGameOver : ((_ result : String) -> Void)?
     
 
     
@@ -89,6 +90,8 @@ class ChessGameManager {
      
 
     func getPieceMoves (row : Int , col : Int) -> [(row: Int , col : Int )]{
+        guard isGameActive else {return []}
+        
         var res : [(Int, Int)] = []
         let moves = game.board.possibleMoveLocationsForPiece(atLocation: BoardLocation(x: col, y: row))
         for move in moves {
@@ -99,6 +102,7 @@ class ChessGameManager {
     
     func makeMove (fromCol : Int , fromRow: Int, toCol : Int, toRow: Int) -> MoveResult? {
         
+        guard isGameActive else {return nil}
         startTimer()
         if let player = game.currentPlayer as? Human {
             
@@ -110,14 +114,17 @@ class ChessGameManager {
             do {
                 //try to make a move
                 try player.movePiece(from: currentLocation,to: newLocation)
+                checkState()
+                onTimeUpdate?(whiteTime,blackTime)
                 //modify the color of the turn
                 turnColor = game.currentPlayer.color
+                print(game.state)
                 //check if there was a capture
                 if isCaptured(x: toCol, y: toRow){
                     capturedPiecePosition = (toCol,toRow)
                     
                     //retun moveresult
-                    onTimeUpdate?(whiteTime,blackTime)
+                    
                     return MoveResult (
                         origin: (fromCol,fromRow),
                         destination: (toCol,toRow),
@@ -126,7 +133,6 @@ class ChessGameManager {
                         isCastling: false)
                 }
                 else{
-                    onTimeUpdate?(whiteTime,blackTime)
                     return MoveResult (
                         origin: (fromCol,fromRow),
                         destination: (toCol,toRow),
@@ -178,11 +184,49 @@ class ChessGameManager {
         
         if turnColor == .white{
             whiteTime -= 1
+            if whiteTime <= 0 {
+                isGameActive = false
+                stopTimer()
+                onGameOver?("black won!")
+            }
         }
         else {
             blackTime -= 1
+            if blackTime <= 0 {
+                isGameActive = false
+                stopTimer()
+                onGameOver?("white won!")
+            }
         }
         onTimeUpdate?(whiteTime,blackTime)
+    }
+    
+    private func checkState () {
+        let state = game.state
+        
+        switch state {
+        case .inProgress :
+            return
+        
+        case .won(color: .white):
+            stopTimer()
+            onGameOver?("CheckMate!, white won!")
+        
+        case .won(color: .black):
+            stopTimer()
+            onGameOver?("CheckMate!, black won!")
+            
+        case .staleMate(color: .white):
+            stopTimer()
+            onGameOver?("staleMate!, draw!")
+            
+        case .staleMate(color: .black):
+            stopTimer()
+            onGameOver?("staleMate!, draw!")
+    
+        }
+        
+        
     }
     
     

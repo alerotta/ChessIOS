@@ -5,6 +5,7 @@
 //  Created by Alessandro Rotta on 15/01/26.
 //
 import SwiftChess
+import Foundation
 
 struct MoveResult {
     let origin : (x : Int, y: Int)
@@ -34,9 +35,18 @@ class ChessGameManager {
         }
     }
     
+    private var timer : Timer?
+    
+    var whiteTime : TimeInterval = 300
+    var blackTime : TimeInterval = 300
+    
+    var onTimeUpdate : ((_ whiteTime: TimeInterval, _ blackTime: TimeInterval) -> Void)?
+    var onTimeExpired : ((_ winner : String) -> Void)?
+    
 
     
     init(){
+        
         let whitePlayer = Human(color: .white)
         let blackPlayer = Human(color: .black)
         self.game = Game(firstPlayer: whitePlayer, secondPlayer: blackPlayer)
@@ -88,6 +98,8 @@ class ChessGameManager {
     }
     
     func makeMove (fromCol : Int , fromRow: Int, toCol : Int, toRow: Int) -> MoveResult? {
+        
+        startTimer()
         if let player = game.currentPlayer as? Human {
             
             let currentLocation = BoardLocation(x: fromCol, y: fromRow)
@@ -105,6 +117,7 @@ class ChessGameManager {
                     capturedPiecePosition = (toCol,toRow)
                     
                     //retun moveresult
+                    onTimeUpdate?(whiteTime,blackTime)
                     return MoveResult (
                         origin: (fromCol,fromRow),
                         destination: (toCol,toRow),
@@ -113,6 +126,7 @@ class ChessGameManager {
                         isCastling: false)
                 }
                 else{
+                    onTimeUpdate?(whiteTime,blackTime)
                     return MoveResult (
                         origin: (fromCol,fromRow),
                         destination: (toCol,toRow),
@@ -146,6 +160,31 @@ class ChessGameManager {
         onColorUpdate?(c)
         
     }
+    
+    private func startTimer(){
+        stopTimer()
+        timer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true ){ [weak self] _ in
+            self?.tick()
+        }
+        
+    }
+    
+    private func stopTimer (){
+        timer?.invalidate()
+        timer = nil
+    }
+    
+    private func tick (){
+        
+        if turnColor == .white{
+            whiteTime -= 1
+        }
+        else {
+            blackTime -= 1
+        }
+        onTimeUpdate?(whiteTime,blackTime)
+    }
+    
     
     
     

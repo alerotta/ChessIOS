@@ -14,13 +14,17 @@ class GameScene: SKScene {
     
     var chessGameManager : ChessGameManager = ChessGameManager()
     var chessBoard : BoardNode!
-    var topBackgroundPart : SKSpriteNode!
-    var bottomBackgroundPart : SKSpriteNode!
+    var gameOverPanel : GameOverNode!
     var selectedSquare : SquareNode?
     var selectedPiece : PieceNode?
     var availableMoves : [(Int, Int)]?
     var initialposition: CGPoint?
     var turnColor : PieceColor = .white
+    
+    var topBackgroundPart : SKSpriteNode!
+    var bottomBackgroundPart : SKSpriteNode!
+    var whiteTimerLabel : SKLabelNode!
+    var blackTimerLabel :  SKLabelNode!
     
 
         
@@ -42,10 +46,18 @@ class GameScene: SKScene {
         
         chessBoard = BoardNode(squareSize: squareSize)
         setupPosition()
+        
         setupBackgroundZones()
         chessBoard.zRotation += .pi
         chessBoard.position = CGPoint(x: self.frame.midX, y: self.frame.midY)
         addChild(chessBoard)
+        
+        setupTimerLabels()
+        setupObservers()
+        
+        gameOverPanel = GameOverNode(sceneSize: self.size, title: "AAA", message: "test1")
+        gameOverPanel.position = CGPoint(x: self.frame.midX, y: self.frame.midY)
+        //addChild(gameOverPanel)
         
         }
     
@@ -62,7 +74,7 @@ class GameScene: SKScene {
             
             if let piece = touchedPiece{
                 
-                // little bug in this condition
+                
                 if selectedSquare == nil {
                     if piece.pieceColor == turnColor{
                         selectedPiece = piece
@@ -83,6 +95,7 @@ class GameScene: SKScene {
                         selectedPiece = nil
                         selectedSquare?.resetState()
                         selectedSquare = nil
+                        
                         
                     }
                     else{
@@ -132,11 +145,10 @@ class GameScene: SKScene {
     
         
        
-    
-
+    /*
     private func highlightPossibleMoves(row : Int, col : Int){
         
-        availableMoves = chessGameManager.getPieceMoves(row: row, col: col)
+        self.availableMoves = chessGameManager.getPieceMoves(row: row, col: col)
         guard let moves = availableMoves else { return }
         for move in moves {
             chessBoard.square(at: (col: move.0, row: move.1))?.showMoveIndicator()
@@ -144,13 +156,14 @@ class GameScene: SKScene {
         
     }
     
-    private func removeHighlightPossibleMoves (availableMoves : [(Int,Int)]? ) {
-        guard let moves = availableMoves else { return }
+    private func removeHighlightPossibleMoves () {
+        guard let moves = self.availableMoves else { return }
         for move in moves {
             chessBoard.square(at: (col: move.0, row: move.1))?.removeMoveInidcator()
-            self.availableMoves = nil
         }
+        self.availableMoves = nil
     }
+     */
         
     private func setupPosition (){
         let piecesInfos = chessGameManager.getPiecesInfo()
@@ -159,9 +172,6 @@ class GameScene: SKScene {
         }
     }
     
-    private func updateColor (color : PieceColor ){
-        print ("color is changed \(color)")
-    }
     
     private func setupBackgroundZones () {
         let size = self.size
@@ -210,6 +220,36 @@ class GameScene: SKScene {
             topBackgroundPart.color = activeColor
             bottomBackgroundPart.color = inactiveColor
         }
+    }
+    
+    func setupTimerLabels (){
+        
+        whiteTimerLabel = SKLabelNode(fontNamed: "Courier-Bold")
+        whiteTimerLabel.fontSize = 24
+        whiteTimerLabel.fontColor = .black
+        bottomBackgroundPart.addChild(whiteTimerLabel)
+        
+        blackTimerLabel = SKLabelNode(fontNamed: "Courier-Bold")
+        blackTimerLabel.fontSize = 24
+        blackTimerLabel.fontColor = .white
+        blackTimerLabel.zRotation = .pi
+        topBackgroundPart.addChild(blackTimerLabel)
+    }
+    
+    func setupObservers (){
+        chessGameManager.onTimeUpdate = { [weak self] whiteTime, blackTime in
+            DispatchQueue.main.async {
+                            self?.whiteTimerLabel.text = self?.formatTime(whiteTime)
+                            self?.blackTimerLabel.text = self?.formatTime(blackTime)
+                        }
+        }
+    }
+    
+    func formatTime (_ totalSeconds : TimeInterval) -> String {
+        let seconds = Int(totalSeconds) % 60
+        let minutes = Int(totalSeconds) / 60
+        
+        return String(format: "%02d:%02d", minutes, seconds)
     }
     
 }

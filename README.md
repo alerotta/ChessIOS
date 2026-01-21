@@ -13,19 +13,18 @@ The primary objective of this repository is to serve as an educational explorati
 ## 🚀 Technology Stack
 
 * **Language:** Swift
-* **Game Engine:** SpriteKit
-* **UI/UX:** UIKit & SpriteKit
-* **Logic Dependency (Current):** [ChessKit](https://github.com/topics/chesskit)
+* **Game Engine:** SwiftChess
+* **UI/UX:** SpriteKit
 
 ## 🧩 Architecture & Game Logic
 
 ### Current Implementation
 At this stage, the project focuses heavily on the **visual and interactive** aspects of the game.
 * **Rendering:** SpriteKit is used to render the board, pieces, and animations.
-* **Rules:** The application currently relies on the external `ChessKit` library to validate moves, check for checkmate/stalemate, and maintain the board state.
+* **Rules:** The application currently relies on the external `SwiftChess` library to validate moves, check for checkmate/stalemate, and maintain the board state.
 
 ### Future Goals
-The roadmap includes a significant refactor to remove the dependency on `ChessKit`. The ultimate goal is to write a custom chess engine and logic layer directly within this project to deepen understanding of algorithms and data structures in Swift.
+The roadmap includes a significant refactor to remove the dependency on `SwiftChess`. The ultimate goal is to write a custom chess engine and logic layer directly within this project to deepen understanding of algorithms and data structures in Swift.
 
 ## ✨ Features
 
@@ -49,22 +48,11 @@ To run this project locally, follow these steps:
 3.  **Open the project:**
     Open the `.xcodeproj` file in Xcode.
 4.  **Resolve Dependencies:**
-    If using Swift Package Manager, wait for Xcode to fetch `ChessKit`.
+    If using Swift Package Manager, wait for Xcode to fetch `Swiftchess`.
 5.  **Build and Run:**
     Select your target simulator or device and hit **Run (Cmd+R)**.
 
-## 🗺️ Roadmap
 
-- [x] Initial SpriteKit board setup.
-- [x] Integrate ChessKit for move validation.
-- [ ] Add sound effects for moves and captures.
-- [ ] Implement a main menu and settings screen.
-- [ ] **Major Refactor:** Replace ChessKit with custom native logic.
-- [ ] Add simple AI opponent.
-
-## 🤝 Contributing
-
-Contributions are welcome! If you have suggestions for optimizing the SpriteKit nodes or tips for writing a custom chess engine, feel free to open a pull request.
 
 ## 📄 License
 

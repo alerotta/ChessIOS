@@ -54,7 +54,7 @@ class BoardNode : SKNode {
         
         return squares[gridPos.row][gridPos.col]
     }
-    
+        
     
     func spawnPiece (type: PieceType , pieceColor : PieceColor  , at gridPos: (col:Int , row : Int)){
         

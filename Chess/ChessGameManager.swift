@@ -12,9 +12,9 @@ struct MoveResult {
     let destination : (x : Int, y: Int)
     let capturedSquare : (x : Int, y: Int)?
     let isPromotion : Bool
-    let isCastling : Bool
+    let isCastling : [(x : Int, y: Int)]?
     
-    init (origin : (x : Int, y: Int),destination : (x : Int, y: Int), capturedSquare : (x : Int, y: Int)?, isPromotion : Bool,  isCastling : Bool ) {
+    init (origin : (x : Int, y: Int),destination : (x : Int, y: Int), capturedSquare : (x : Int, y: Int)?, isPromotion : Bool,  isCastling : [(x : Int, y: Int)]? ) {
         self.origin = origin
         self.destination = destination
         self.capturedSquare = capturedSquare
@@ -110,15 +110,35 @@ class ChessGameManager {
             let newLocation = BoardLocation(x: toCol, y: toRow)
             let capturedPiecePosition : (x : Int , y : Int)?
             
+            print ("X:\(currentLocation.x), Y: \(currentLocation.y)")
+            
+            
+            if let castleSide = isCastleRequest(kingPosition: currentLocation, finalPosition: newLocation){
+                
+                if game.board.canColorCastle(color: turnColor, side: castleSide){
+                    player.performCastleMove(side: castleSide)
+                    //print("catle done")
+                    checkState()
+                    onTimeUpdate?(whiteTime,blackTime)
+                    turnColor = game.currentPlayer.color
+                    return MoveResult (
+                        origin: (fromCol,fromRow),
+                        destination: (toCol,toRow),
+                        capturedSquare: nil,
+                        isPromotion: false,
+                        isCastling: castleSideToRookPosition(castleSide))
+                    }
+                //print ("castle not done")
+                print (castleSide)
+                }
+                
             
             do {
                 //try to make a move
                 try player.movePiece(from: currentLocation,to: newLocation)
                 checkState()
                 onTimeUpdate?(whiteTime,blackTime)
-                //modify the color of the turn
                 turnColor = game.currentPlayer.color
-                print(game.state)
                 //check if there was a capture
                 if isCaptured(x: toCol, y: toRow){
                     capturedPiecePosition = (toCol,toRow)
@@ -130,7 +150,7 @@ class ChessGameManager {
                         destination: (toCol,toRow),
                         capturedSquare: capturedPiecePosition,
                         isPromotion: false,
-                        isCastling: false)
+                        isCastling: nil)
                 }
                 else{
                     return MoveResult (
@@ -138,7 +158,7 @@ class ChessGameManager {
                         destination: (toCol,toRow),
                         capturedSquare: nil,
                         isPromotion: false,
-                        isCastling: false)
+                        isCastling: nil)
                 }
             }
             catch{
@@ -228,6 +248,56 @@ class ChessGameManager {
         
         
     }
+    
+    private func isCastleRequest ( kingPosition : BoardLocation, finalPosition : BoardLocation ) -> CastleSide? {
+        
+        let whiteKingCastlePosition = BoardLocation (x: 4, y: 7)
+        let blackKingCastlePosition = BoardLocation (x: 4, y: 0)
+        
+        let whiteShortCastleSquare = BoardLocation (x : 2 , y : 7)
+        let whiteLongCastleSquare = BoardLocation (x : 6 , y : 7)
+        let blackShortCastleSquare = BoardLocation (x : 2 , y : 0)
+        let blackLongCastleSquare = BoardLocation (x : 6 , y : 0)
+        
+        if (kingPosition != whiteKingCastlePosition) && (kingPosition != blackKingCastlePosition) {return nil}
+        
+        if finalPosition == whiteLongCastleSquare{
+            return .kingSide
+        }
+        else if finalPosition == whiteShortCastleSquare {
+            return .queenSide
+        }
+        else if finalPosition == blackLongCastleSquare {
+            return .kingSide
+        }
+        else if finalPosition == blackShortCastleSquare {
+            return .queenSide
+        }
+        else {return nil}
+    }
+    
+    private func castleSideToRookPosition (_ castleSide : CastleSide) -> [(x : Int, y: Int)] {
+        
+        switch castleSide {
+            
+        case .queenSide :
+            if turnColor == .black {
+                return [(x: 0 , y: 0),(x: 3 , y: 0)]
+            }
+            else{
+                return [(x: 0 , y: 7),(x: 3 , y: 7)]
+            }
+                
+        case .kingSide :
+            if turnColor == .black {
+                return [(x: 7 , y: 0),(x: 5 , y: 0)]
+            }
+            else{
+                return [(x: 7 , y: 7),(x: 5 , y: 7)]
+            }
+        }
+    }
+    
     
     
     

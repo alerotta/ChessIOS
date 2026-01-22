@@ -108,16 +108,29 @@ class GameScene: SKScene {
                 if selectedPiece != nil {
                     //move +no eat+ reset to initial state
                     
-                    moveResult = chessGameManager.makeMove(fromCol: selectedSquare!.col,
+                    
+                    if let moveResult = chessGameManager.makeMove(fromCol: selectedSquare!.col,
                                                            fromRow: selectedSquare!.row,
                                                            toCol: square.col,
-                                                           toRow: square.row)
-                    if moveResult != nil {
+                                                                  toRow: square.row){
                         let moveAction = SKAction.move(to: square.position, duration: 0.1)
                         selectedPiece?.run(moveAction)
+                        
+                        if let rookPositions =  moveResult.isCastling{
+                            let startingRookPosition = rookPositions[0]
+                            let finalRookPosition = rookPositions[1]
+                            guard let startingSquare = chessBoard.square(at: (col: startingRookPosition.x, row: startingRookPosition.y)) else {return}
+                            guard let finalSquare = chessBoard.square(at: (col: finalRookPosition.x, row: finalRookPosition.y)) else {return}
+                            let nodes = chessBoard.nodes(at:startingSquare.position)
+                            let rookPiece = nodes.first(where: { $0 is PieceNode }) as? PieceNode
+                            
+                            let moveRookAction = SKAction.move(to: finalSquare.position, duration: 0.1)
+                            rookPiece?.run(moveRookAction)
+                        }
                         selectedPiece = nil
                         selectedSquare?.resetState()
                         selectedSquare = nil
+                        
                         
                     }
                     else{

@@ -127,6 +127,13 @@ class GameScene: SKScene {
                             let moveRookAction = SKAction.move(to: finalSquare.position, duration: 0.1)
                             rookPiece?.run(moveRookAction)
                         }
+                        if let enPassantCapturedPawn = moveResult.isEnPassant{
+                            guard let squareToCapture = chessBoard.square(at: (col: enPassantCapturedPawn.x, row: enPassantCapturedPawn.y)) else {return}
+                            let nodes = chessBoard.nodes(at:squareToCapture.position)
+                            let pawnPiece = nodes.first(where: { $0 is PieceNode }) as? PieceNode
+                            print("here")
+                            pawnPiece?.removeFromParent()
+                        }
                         selectedPiece = nil
                         selectedSquare?.resetState()
                         selectedSquare = nil

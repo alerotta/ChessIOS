@@ -13,13 +13,15 @@ struct MoveResult {
     let capturedSquare : (x : Int, y: Int)?
     let isPromotion : Bool
     let isCastling : [(x : Int, y: Int)]?
+    let isEnPassant : (x : Int, y: Int)?
     
-    init (origin : (x : Int, y: Int),destination : (x : Int, y: Int), capturedSquare : (x : Int, y: Int)?, isPromotion : Bool,  isCastling : [(x : Int, y: Int)]? ) {
+    init (origin : (x : Int, y: Int),destination : (x : Int, y: Int), capturedSquare : (x : Int, y: Int)?, isPromotion : Bool,  isCastling : [(x : Int, y: Int)]? , isEnPassant : (x : Int, y: Int)? ){
         self.origin = origin
         self.destination = destination
         self.capturedSquare = capturedSquare
         self.isPromotion = isPromotion
         self.isCastling = isCastling
+        self.isEnPassant = isEnPassant
         
     }
 }
@@ -110,9 +112,6 @@ class ChessGameManager {
             let newLocation = BoardLocation(x: toCol, y: toRow)
             let capturedPiecePosition : (x : Int , y : Int)?
             
-            print ("X:\(currentLocation.x), Y: \(currentLocation.y)")
-            
-            
             if let castleSide = isCastleRequest(kingPosition: currentLocation, finalPosition: newLocation){
                 
                 if game.board.canColorCastle(color: turnColor, side: castleSide){
@@ -126,20 +125,23 @@ class ChessGameManager {
                         destination: (toCol,toRow),
                         capturedSquare: nil,
                         isPromotion: false,
-                        isCastling: castleSideToRookPosition(castleSide))
+                        isCastling: castleSideToRookPosition(castleSide),
+                        isEnPassant: nil)
                     }
                 //print ("castle not done")
                 print (castleSide)
                 }
+            
+            
                 
             
             do {
                 //try to make a move
+                let isEnPassant = isEnPassant(intialPosition: currentLocation, finalPosition: newLocation)
                 try player.movePiece(from: currentLocation,to: newLocation)
                 checkState()
                 onTimeUpdate?(whiteTime,blackTime)
                 turnColor = game.currentPlayer.color
-                //check if there was a capture
                 if isCaptured(x: toCol, y: toRow){
                     capturedPiecePosition = (toCol,toRow)
                     
@@ -150,7 +152,8 @@ class ChessGameManager {
                         destination: (toCol,toRow),
                         capturedSquare: capturedPiecePosition,
                         isPromotion: false,
-                        isCastling: nil)
+                        isCastling: nil,
+                        isEnPassant: isEnPassant)
                 }
                 else{
                     return MoveResult (
@@ -158,7 +161,8 @@ class ChessGameManager {
                         destination: (toCol,toRow),
                         capturedSquare: nil,
                         isPromotion: false,
-                        isCastling: nil)
+                        isCastling: nil,
+                        isEnPassant: isEnPassant)
                 }
             }
             catch{
@@ -296,6 +300,22 @@ class ChessGameManager {
                 return [(x: 7 , y: 7),(x: 5 , y: 7)]
             }
         }
+    }
+    
+    private func isEnPassant (intialPosition : BoardLocation , finalPosition : BoardLocation ) -> (x : Int , y: Int)? {
+        
+        if let movingPiece = game.board.getPiece(at: intialPosition) {
+            if (movingPiece.type == .pawn){
+                if (intialPosition.x != finalPosition.x){
+                    if (game.board.getPiece(at: finalPosition) == nil){
+                        if turnColor == .white {return (x : finalPosition.x , y : finalPosition.y - 1 )}
+                        else{return (x : finalPosition.x , y : finalPosition.y + 1)}
+                    }
+                }
+            }
+        }
+        return nil
+        
     }
     
     

@@ -40,18 +40,21 @@ class ChessGameManager {
     
     private var timer : Timer?
     
-    var whiteTime : TimeInterval = 300
-    var blackTime : TimeInterval = 300
+    var whiteTime : TimeInterval
+    var blackTime : TimeInterval
     
     var onTimeUpdate : ((_ whiteTime: TimeInterval, _ blackTime: TimeInterval) -> Void)?
     var onGameOver : ((_ result : String) -> Void)?
     
 
     
-    init(){
+    init(matchDuration : TimeInterval){
         
         let whitePlayer = Human(color: .white)
         let blackPlayer = Human(color: .black)
+        let matchDuration = matchDuration
+        whiteTime = matchDuration
+        blackTime = matchDuration
         self.game = Game(firstPlayer: whitePlayer, secondPlayer: blackPlayer)
     }
     

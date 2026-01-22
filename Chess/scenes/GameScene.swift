@@ -12,7 +12,7 @@ import GameplayKit
 
 class GameScene: SKScene {
     
-    var chessGameManager : ChessGameManager = ChessGameManager()
+    var chessGameManager : ChessGameManager
     var chessBoard : BoardNode!
     var gameOverPanel : GameOverNode!
     var selectedSquare : SquareNode?
@@ -25,6 +25,22 @@ class GameScene: SKScene {
     var bottomBackgroundPart : SKSpriteNode!
     var whiteTimerLabel : SKLabelNode!
     var blackTimerLabel :  SKLabelNode!
+    
+    init(size: CGSize, matchDuration: TimeInterval) {
+            // Initialize the manager
+            self.chessGameManager = ChessGameManager(matchDuration: matchDuration)
+            
+            // Pass the value to the manager immediately
+            self.chessGameManager.whiteTime = matchDuration
+            self.chessGameManager.blackTime = matchDuration
+            
+            // Call the superclass init
+            super.init(size: size)
+        }
+    
+    required init?(coder aDecoder: NSCoder) {
+            fatalError("init(coder:) has not been implemented")
+        }
     
 
         
@@ -286,7 +302,7 @@ class GameScene: SKScene {
 
 struct GameScene_Preview : PreviewProvider {
     static var previews : some View {
-        let scene = GameScene(size: CGSize(width: 375, height: 812))
+        let scene = GameScene(size: CGSize(width: 375, height: 812), matchDuration: 300)
                 scene.scaleMode = .aspectFill
         
         return SpriteView(scene: scene)

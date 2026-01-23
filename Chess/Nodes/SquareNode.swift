@@ -5,6 +5,7 @@
 //  Created by Alessandro Rotta on 13/01/26.
 //
 import SpriteKit
+import SwiftUI
 
 class SquareNode : SKSpriteNode {
     
@@ -22,7 +23,7 @@ class SquareNode : SKSpriteNode {
         self.defaultColor = isLight ? lightColor : darkColor
         super.init(texture: nil, color: defaultColor, size: size)
         
-        self.name = "square-\(col)-\(row)"
+        //self.name = "square-\(col)-\(row)"
         self.zPosition = 0
         
         //border definition
@@ -31,6 +32,30 @@ class SquareNode : SKSpriteNode {
         border.lineWidth = 1
         border.fillColor = .clear
         border.zPosition = 1
+        
+        //set up SquareNode
+        if col == 0 {
+            let label = SKLabelNode()
+            label.text = String(row + 1)
+            label.fontName = "Helvetica-Bold"
+            label.fontSize = 7
+            label.fontColor = .black
+            label.zPosition = 1
+            label.position = CGPoint(x:  size.width * 0.4, y:  -size.height * 0.3 )
+            label.zRotation = .pi
+            self.addChild(label)
+        }
+        if row == 0 {
+            let label = SKLabelNode()
+            label.text = Self.numberToChar(col)
+            label.fontName = "Helvetica-Bold"
+            label.fontSize = 7
+            label.fontColor = .black
+            label.zPosition = 1
+            label.position = CGPoint(x: -size.width * 0.4, y:  size.height * 0.45 )
+            label.zRotation = .pi
+            self.addChild(label)
+        }
         self.addChild(border)
     }
     
@@ -61,4 +86,19 @@ class SquareNode : SKSpriteNode {
     func resetState(){
         self.color = defaultColor
     }
+    
+    static func numberToChar (_ i : Int) -> String {
+        switch i {
+        case 0 : return "a"
+        case 1 : return "b"
+        case 2 : return "c"
+        case 3 : return "d"
+        case 4 : return "e"
+        case 5 : return "f"
+        case 6 : return "g"
+        case 7 : return "h"
+        default : return "errror"
+        }
+    }
+    
 }

@@ -12,7 +12,9 @@ import GameplayKit
 
 class GameScene: SKScene {
     
-    var chessGameManager : ChessGameManager
+    let buttonContainerWhite = SKNode ()
+    let buttonContainerBlack = SKNode ()
+    let chessGameManager : ChessGameManager
     var chessBoard : BoardNode!
     var gameOverPanel : GameOverNode!
     var selectedSquare : SquareNode?
@@ -70,6 +72,7 @@ class GameScene: SKScene {
         chessBoard.position = CGPoint(x: self.frame.midX, y: self.frame.midY)
         addChild(chessBoard)
         
+        setupButtons ()
         setupTimerLabels()
         setupObservers()
         
@@ -374,6 +377,49 @@ class GameScene: SKScene {
         
         return String(format: "%02d:%02d", minutes, seconds)
     }
+    
+    func createButton (name: String, text: String, position: CGPoint) -> SKShapeNode {
+        let button = SKShapeNode(rectOf: CGSize(width: 50, height: 50), cornerRadius: 10)
+        button.fillColor =  .gray
+        button.strokeColor = .clear
+        button.name = name
+        button.position = position
+        
+        let label = SKLabelNode(text: text)
+        label.fontName = "Helvetica-Bold"
+        label.fontSize = 20
+        label.verticalAlignmentMode = .center
+        label.zPosition = 1
+        label.fontColor = .white
+        
+        button.addChild(label)
+        return button
+    }
+    
+    func setupButtons () {
+        
+        addChild(buttonContainerWhite)
+        addChild(buttonContainerBlack)
+        
+        buttonContainerWhite.position = CGPoint(x: frame.midX , y: frame.midY - 300)
+        
+        buttonContainerBlack.position = CGPoint(x: frame.midX , y: frame.midY + 300)
+        buttonContainerBlack.zRotation = .pi
+        
+    
+        let buttonPause = createButton(name: "pause", text: "P", position:  CGPoint(x:  30 , y: 0  ) )
+        let buttonResign = createButton(name: "resign", text: "R", position:   CGPoint(x:  -30 , y: 0 ) )
+        let buttonPauseB = createButton(name: "pause", text: "P", position:  CGPoint(x:  30 , y: 0  ) )
+        let buttonResignB = createButton(name: "resign", text: "R", position:   CGPoint(x:  -30 , y: 0 ) )
+        
+        buttonContainerWhite.addChild(buttonPause)
+        buttonContainerWhite.addChild(buttonResign)
+        
+        buttonContainerBlack.addChild(buttonPauseB)
+        buttonContainerBlack.addChild(buttonResignB)
+        
+    }
+    
     
 }
 

@@ -20,7 +20,7 @@ class MenuScene: SKScene {
     
     var currentMenuState : menuState = .main
     var selectedGameType : String?
-    var selectedTimeButton : SKSpriteNode?
+    var selectedTimeButton : SKShapeNode?
     
     override func didMove(to view: SKView) {
         
@@ -61,10 +61,14 @@ class MenuScene: SKScene {
     }
     
     func handleTimeMenuClick (node : SKNode?) {
-        guard let name = node?.name, let spriteNode = node as? SKSpriteNode else { return }
+        guard let name = node?.name, let spriteNode = node as? SKShapeNode else { return }
         
         if name.starts(with: "time") {
             toggleTimeButton(spriteNode)
+            return
+        }
+        if name == "back"{
+            animateToGameSelection()
         }
         else{
             switch selectedTimeButton?.name {
@@ -78,11 +82,11 @@ class MenuScene: SKScene {
         
     }
     
-    func toggleTimeButton ( _ btn : SKSpriteNode){
+    func toggleTimeButton ( _ btn : SKShapeNode){
         if let previous = selectedTimeButton {
-            previous.color = SKColor(red: 170/255, green: 139/255, blue: 109/255, alpha: 1)
+            previous.fillColor = SKColor(red: 170/255, green: 139/255, blue: 109/255, alpha: 1)
         }
-        btn.color = .red
+        btn.fillColor = .red
         selectedTimeButton = btn
     }
     
@@ -120,19 +124,24 @@ class MenuScene: SKScene {
         let fiveMinButton = createButton(name: "timeFive", text: "5:00", position: CGPoint(x: frame.midX, y: frame.midY - 30))
         let tenMinButton = createButton(name: "timeTen", text: "10:00", position: CGPoint(x: frame.midX, y: frame.midY - 90))
         let startButton =  createButton(name: "startGameBtn", text: "Start New Game", position: CGPoint(x: frame.midX, y: frame.midY - 150))
+        let backButton =  createButton(name: "back", text: "Back", position: CGPoint(x: frame.midX, y: frame.midY - 210))
+        
         
         timeSelectContainer.addChild(threeMinButton)
         timeSelectContainer.addChild(fiveMinButton)
         timeSelectContainer.addChild(tenMinButton)
         timeSelectContainer.addChild(startButton)
+        timeSelectContainer.addChild(backButton)
     }
     
-    func createButton (name: String, text: String, position: CGPoint) -> SKSpriteNode {
+    func createButton (name: String, text: String, position: CGPoint) -> SKShapeNode {
         
-        let button = SKSpriteNode(color: .gray, size: CGSize(width: 200, height: 50))
+       
+        let button = SKShapeNode(rectOf: CGSize(width: 200, height: 50), cornerRadius: 10)
+        button.fillColor =  SKColor(red: 170/255, green: 139/255, blue: 109/255, alpha: 1)
+        button.strokeColor = .clear
         button.name = name
         button.position = position
-        button.color = SKColor(red: 170/255, green: 139/255, blue: 109/255, alpha: 1)
         
         let label = SKLabelNode(text: text)
         label.fontName = "Helvetica-Bold"
@@ -153,6 +162,19 @@ class MenuScene: SKScene {
         mainContainer.run(fadeOut){
             self.currentMenuState = .timeSelect
             self.timeSelectContainer.run(fadeIn)
+            self.isUserInteractionEnabled = true
+        }
+    }
+    
+    func animateToGameSelection (){
+        isUserInteractionEnabled = false
+        let fadeOut = SKAction.fadeOut(withDuration: 0.2)
+        let fadeIn = SKAction.fadeIn(withDuration: 0.3)
+        
+        
+        timeSelectContainer.run(fadeOut){
+            self.currentMenuState = .main
+            self.mainContainer.run(fadeIn)
             self.isUserInteractionEnabled = true
         }
     }

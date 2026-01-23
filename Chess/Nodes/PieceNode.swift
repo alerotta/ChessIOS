@@ -33,7 +33,7 @@ class PieceNode : SKSpriteNode {
         let imageName = "\(pieceColor.rawValue)_\(type.rawValue)"
         let texture = SKTexture(imageNamed: imageName)
         super.init(texture: texture, color: .clear, size: size)
-        self.zPosition = 10
+        self.zPosition = 1
         self.name = "Piece"
     }
     

@@ -21,10 +21,12 @@ class GameScene: SKScene {
     var initialposition: CGPoint?
     var turnColor : PieceColor = .white
     
-    var topBackgroundPart : SKSpriteNode!
-    var bottomBackgroundPart : SKSpriteNode!
+    var topBackgroundPart : SKShapeNode!
+    var bottomBackgroundPart : SKShapeNode!
     var whiteTimerLabel : SKLabelNode!
     var blackTimerLabel :  SKLabelNode!
+    
+    var isDragging : Bool = false
     
     init(size: CGSize, matchDuration: TimeInterval) {
             // Initialize the manager
@@ -56,7 +58,7 @@ class GameScene: SKScene {
         let squareSize = availableWidth / 8
         
         self.chessGameManager.onColorUpdate = {[weak self] color in
-            //self?.updateTurnVisuals(color: color)
+            self?.updateTurnVisuals(color: color)
             self?.turnColor = color
         }
         
@@ -75,6 +77,7 @@ class GameScene: SKScene {
         }
     
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
+        
         guard let touch = touches.first else { return }
         let location = touch.location(in: self.chessBoard)
         let nodes = chessBoard.nodes(at:location)
@@ -82,6 +85,7 @@ class GameScene: SKScene {
         let touchedSquare = nodes.first(where: { $0 is SquareNode }) as? SquareNode
         
         var moveResult: MoveResult?
+        isDragging = false
         
         if let square = touchedSquare{
             
@@ -105,16 +109,12 @@ class GameScene: SKScene {
                         let moveAction = SKAction.move(to: square.position, duration: 0.1)
                         selectedPiece?.run(moveAction)
                         piece.removeFromParent()
-                        selectedPiece = nil
-                        selectedSquare?.resetState()
-                        selectedSquare = nil
+                        resetSelection()
                         
                         
                     }
                     else{
-                        selectedPiece = nil
-                        selectedSquare?.resetState()
-                        selectedSquare = nil
+                        resetSelection()
                     }
                 }
                 
@@ -128,7 +128,7 @@ class GameScene: SKScene {
                     if let moveResult = chessGameManager.makeMove(fromCol: selectedSquare!.col,
                                                            fromRow: selectedSquare!.row,
                                                            toCol: square.col,
-                                                                  toRow: square.row){
+                                                        toRow: square.row){
                         let moveAction = SKAction.move(to: square.position, duration: 0.1)
                         selectedPiece?.run(moveAction)
                         
@@ -150,16 +150,12 @@ class GameScene: SKScene {
                             print("here")
                             pawnPiece?.removeFromParent()
                         }
-                        selectedPiece = nil
-                        selectedSquare?.resetState()
-                        selectedSquare = nil
+                        resetSelection()
                         
                         
                     }
                     else{
-                        selectedPiece = nil
-                        selectedSquare?.resetState()
-                        selectedSquare = nil
+                        resetSelection()
                     }
                     
                 }
@@ -168,11 +164,83 @@ class GameScene: SKScene {
             
         }
         else{
-            //reset to nothing selected
-            selectedPiece = nil
-            selectedSquare?.resetState()
-            selectedSquare = nil
+            resetSelection()
         }
+        
+    }
+    
+    override func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent?) {
+        guard let touch = touches.first else { return }
+        let location = touch.location(in: self.chessBoard)
+        isDragging = true
+        selectedPiece?.position = location
+        selectedPiece?.zPosition = 2
+        
+    }
+    
+    override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
+        
+        guard let touch = touches.first else { return }
+        guard let startingSquare = selectedSquare else {return}
+        guard let movingPiece = selectedPiece else {return}
+        if !isDragging {return}
+        
+        let location = touch.location(in: self.chessBoard)
+        let nodes = chessBoard.nodes(at:location)
+        let pieceToEat = nodes.compactMap { $0 as? PieceNode }
+                            .first(where: { $0.pieceColor != turnColor })
+        
+        if let finalSquare = nodes.first(where: { $0 is SquareNode }) as? SquareNode {
+            
+            if let moveResult = chessGameManager.makeMove(fromCol: startingSquare.col,
+                                                          fromRow: startingSquare.row,
+                                                          toCol: finalSquare.col,
+                                                          toRow: finalSquare.row){
+                
+                let moveAction = SKAction.move(to: finalSquare.position, duration: 0.1)
+                movingPiece.run(moveAction)
+                
+                pieceToEat?.removeFromParent()
+                
+                if let rookPositions =  moveResult.isCastling{
+                    let startingRookPosition = rookPositions[0]
+                    let finalRookPosition = rookPositions[1]
+                    guard let startingRookSquare = chessBoard.square(at: (col: startingRookPosition.x, row: startingRookPosition.y)) else {return}
+                    guard let finalRookSquare = chessBoard.square(at: (col: finalRookPosition.x, row: finalRookPosition.y)) else {return}
+                    let nodes = chessBoard.nodes(at:startingRookSquare.position)
+                    let rookPiece = nodes.first(where: { $0 is PieceNode }) as? PieceNode
+                    
+                    let moveRookAction = SKAction.move(to: finalRookSquare.position, duration: 0.1)
+                    rookPiece?.run(moveRookAction)
+                }
+                if let enPassantCapturedPawn = moveResult.isEnPassant{
+                    guard let squareToCapture = chessBoard.square(at: (col: enPassantCapturedPawn.x, row: enPassantCapturedPawn.y)) else {return}
+                    let nodes = chessBoard.nodes(at:squareToCapture.position)
+                    let pawnPiece = nodes.first(where: { $0 is PieceNode }) as? PieceNode
+                    pawnPiece?.removeFromParent()
+                }
+                resetSelection()
+                
+            }
+            else{
+                let moveAction = SKAction.move(to: startingSquare.position, duration: 0.1)
+                movingPiece.run(moveAction)
+                resetSelection()
+            }
+            
+        }
+        else{
+            let moveAction = SKAction.move(to: startingSquare.position, duration: 0.1)
+            movingPiece.run(moveAction)
+            resetSelection()
+            
+        }
+        
+
+        
+        
+        
+        
         
     }
     
@@ -197,6 +265,13 @@ class GameScene: SKScene {
         self.availableMoves = nil
     }
      */
+    
+    private func resetSelection (){
+        selectedPiece?.zPosition = 1
+        selectedPiece = nil
+        selectedSquare?.resetState()
+        selectedSquare = nil
+    }
         
     private func setupPosition (){
         let piecesInfos = chessGameManager.getPiecesInfo()
@@ -210,27 +285,35 @@ class GameScene: SKScene {
         let size = self.size
         let halfHeight = size.height / 2
         
-        topBackgroundPart = SKSpriteNode(color: .darkGray, size: CGSize(width: size.width, height: halfHeight))
-            
-        topBackgroundPart.position = CGPoint(x: size.width * 0.5, y: size.height * 0.75)
-            topBackgroundPart.zPosition = -10 // Place behind the board (assuming board is 0 or higher)
-            addChild(topBackgroundPart)
-            
+        topBackgroundPart = SKShapeNode(rectOf: CGSize(width: size.width, height: halfHeight))
+        topBackgroundPart.zPosition = -10
+        topBackgroundPart.fillColor = .darkGray
+        topBackgroundPart.strokeColor = .lightGray
+        topBackgroundPart.lineWidth = 2.0
+        topBackgroundPart.alpha = 0.7
+        topBackgroundPart.position =  CGPoint(x: size.width * 0.5, y: size.height * 0.75)
+        addChild(topBackgroundPart)
         
-        bottomBackgroundPart = SKSpriteNode(color: .white, size: CGSize(width: size.width, height: halfHeight))
-        bottomBackgroundPart.position = CGPoint(x: size.width * 0.5, y: size.height * 0.25)
-            bottomBackgroundPart.zPosition = -10
-            addChild(bottomBackgroundPart)
+        bottomBackgroundPart = SKShapeNode(rectOf: CGSize(width: size.width, height: halfHeight))
+        bottomBackgroundPart.zPosition = -10
+        bottomBackgroundPart.fillColor = .white
+        bottomBackgroundPart.strokeColor = .lightGray
+        bottomBackgroundPart.lineWidth = 2.0
+        bottomBackgroundPart.alpha = 0.7
+        bottomBackgroundPart.position =  CGPoint(x: size.width * 0.5, y: size.height * 0.25)
+        addChild(bottomBackgroundPart)
+        
+        
+        
     }
+    
+    
     
     func updateTurnVisuals(color : PieceColor) {
         // Define how an "Active" and "Inactive" zone should look
-        let activeAlpha: CGFloat = 0.8
+        let activeAlpha: CGFloat = 0.7
         let inactiveAlpha: CGFloat = 0.2
-        
-        // Optional: Change color tint if desired
-        let activeColor: UIColor = .systemBlue // Or keep original
-        let inactiveColor: UIColor = .gray
+
         
         if color == PieceColor.white {
             // Highlight Bottom (White), Deactivate Top (Black)
@@ -239,21 +322,15 @@ class GameScene: SKScene {
             bottomBackgroundPart.run(.fadeAlpha(to: activeAlpha, duration: 0.3))
             topBackgroundPart.run(.fadeAlpha(to: inactiveAlpha, duration: 0.3))
             
-            // Optional: If you want to change colors too
-            bottomBackgroundPart.color = activeColor
-            topBackgroundPart.color = inactiveColor
-            
         } else {
             // Highlight Top (Black), Deactivate Bottom (White)
             
             topBackgroundPart.run(.fadeAlpha(to: activeAlpha, duration: 0.3))
             bottomBackgroundPart.run(.fadeAlpha(to: inactiveAlpha, duration: 0.3))
             
-            // Optional: Color change
-            topBackgroundPart.color = activeColor
-            bottomBackgroundPart.color = inactiveColor
         }
     }
+     
     
     func setupTimerLabels (){
         

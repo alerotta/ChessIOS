@@ -43,7 +43,7 @@ class GameOverNode : SKNode {
         titleLabel.color = .black
         titleLabel.position = CGPoint(x: 0, y: 20)
         //titleLabel.verticalAlignmentMode = .center
-        panel.addChild(titleLabel)
+       // panel.addChild(titleLabel)
         
         let msgLabel = SKLabelNode(text: message)
         msgLabel.fontName = "AvenirNext-Medium"
@@ -87,14 +87,15 @@ class GameOverNode : SKNode {
             
             for node in nodesAtPoint {
                 if node.name == restartButtonName {
-                    // Animate button press
-                    runButtonAnimation(node: node) {
-                        self.onRestart?()
-                    }
+                    self.onRestart?()
+
                 } else if node.name == menuButtonName {
+                    self.onMenu?()
+                    /*
                     runButtonAnimation(node: node) {
                         self.onMenu?()
                     }
+                     */
                 }
             }
         }

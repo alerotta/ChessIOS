@@ -22,6 +22,7 @@ class GameScene: SKScene {
     var availableMoves : [(Int, Int)]?
     var initialposition: CGPoint?
     var turnColor : PieceColor = .white
+    var isGameActive : Bool = true
     
     var topBackgroundPart : SKShapeNode!
     var bottomBackgroundPart : SKShapeNode!
@@ -83,10 +84,14 @@ class GameScene: SKScene {
         
         guard let touch = touches.first else { return }
         let location = touch.location(in: self.chessBoard)
+        let locationScene = touch.location(in: self)
         let nodes = chessBoard.nodes(at:location)
         let touchedPiece = nodes.first(where: { $0 is PieceNode }) as? PieceNode
         let touchedSquare = nodes.first(where: { $0 is SquareNode }) as? SquareNode
         isDragging = false
+        
+        
+        handleButtonInteraction (at: locationScene)
 
             
         // *** the following part deals with touches over the board ***
@@ -292,8 +297,17 @@ class GameScene: SKScene {
             let panel = GameOverNode(sceneSize: self.size,
                                      title: "Game Over",
                                      message: result)
+            
+            panel.onRestart = {[weak self] in
+                self?.restartGame()
+            }
+            
+            panel.onMenu = { [weak self] in
+                self?.goToMenu()
+            }
             panel.position = CGPoint(x: self.frame.midX, y: self.frame.midY)
             self.addChild(panel)
+            
 
             
         }
@@ -335,9 +349,9 @@ class GameScene: SKScene {
         
     
         let buttonPause = createButton(name: "pause", text: "P", position:  CGPoint(x:  30 , y: 0  ) )
-        let buttonResign = createButton(name: "resign", text: "R", position:   CGPoint(x:  -30 , y: 0 ) )
+        let buttonResign = createButton(name: "whiteResign", text: "R", position:   CGPoint(x:  -30 , y: 0 ) )
         let buttonPauseB = createButton(name: "pause", text: "P", position:  CGPoint(x:  30 , y: 0  ) )
-        let buttonResignB = createButton(name: "resign", text: "R", position:   CGPoint(x:  -30 , y: 0 ) )
+        let buttonResignB = createButton(name: "blackResign", text: "R", position:   CGPoint(x:  -30 , y: 0 ) )
         
         buttonContainerWhite.addChild(buttonPause)
         buttonContainerWhite.addChild(buttonResign)
@@ -347,6 +361,67 @@ class GameScene: SKScene {
         
     }
     
+    func handleButtonInteraction(at location : CGPoint) {
+        let touchednodes = nodes(at: location)
+        
+        
+        for node in touchednodes {
+            if let name = node.name{
+                switch name {
+                case "pause":
+                    togglepause()
+                case "whiteResign" :
+                    resign(str: "Black")
+                   
+                case "blackResign" :
+                    resign(str: "White")
+                    
+                default : return
+                }
+            }
+        }
+        return
+    }
+    
+    private func animateButtonPress(node: SKNode) {
+        let scaleDown = SKAction.scale(to: 0.9, duration: 0.1)
+        let scaleUp = SKAction.scale(to: 1.0, duration: 0.1)
+        node.run(SKAction.sequence([scaleDown, scaleUp]))
+    }
+    
+    func togglepause (){
+        if isGameActive {
+            chessGameManager.stopTimer()
+        }
+        else{
+            chessGameManager.startTimer()
+        }
+        isGameActive.toggle()
+    }
+    
+    func resign(str : String) {
+        chessGameManager.onGameOver?(str + " won by resignation")
+        
+    }
+    
+    func restartGame () {
+        let newScene = GameScene(size: self.size, matchDuration: 300)
+            newScene.scaleMode = self.scaleMode
+            
+            // 2. Create a transition (Crossfade looks nice)
+            let transition = SKTransition.crossFade(withDuration: 0.5)
+            
+            // 3. Present the new scene
+            self.view?.presentScene(newScene, transition: transition)
+    }
+    
+    func goToMenu (){
+        let menuScene = MenuScene(size: self.size)
+            menuScene.scaleMode = self.scaleMode
+            
+            let transition = SKTransition.push(with: .right, duration: 0.5)
+            self.view?.presentScene(menuScene, transition: transition)
+    }
     
 }
 

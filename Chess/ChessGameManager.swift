@@ -194,7 +194,7 @@ class ChessGameManager {
         
     }
     
-    private func startTimer(){
+    func startTimer(){
         stopTimer()
         timer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true ){ [weak self] _ in
             self?.tick()
@@ -202,7 +202,7 @@ class ChessGameManager {
         
     }
     
-    private func stopTimer (){
+    func stopTimer (){
         timer?.invalidate()
         timer = nil
     }

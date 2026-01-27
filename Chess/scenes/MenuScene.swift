@@ -20,7 +20,7 @@ class MenuScene: SKScene {
     
     var currentMenuState : menuState = .main
     var selectedGameType : String?
-    var selectedTimeButton : SKShapeNode?
+    //var selectedTimeButton : SKShapeNode?
     
     override func didMove(to view: SKView) {
         
@@ -29,69 +29,52 @@ class MenuScene: SKScene {
         setupTimeButtons()
     }
     
-    override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
-        guard let touch = touches.first else {return}
-        let location = touch.location(in: self)
-        let nodesAtpoint = nodes(at: location)
-        
-        
-        for node in nodesAtpoint {
-            let clickedNode = node.name == "label" ? node.parent : node
-            if currentMenuState == .main {
-                handleMainMenuClick(node: clickedNode)
-            } else if currentMenuState == .timeSelect {
-                handleTimeMenuClick(node: clickedNode)
-            }
-        }
-    }
     
-    func handleMainMenuClick (node: SKNode?){
-        guard let name = node?.name else { return }
+    func handleMainMenuClick (node: MenuButtonNode){
         
-        if name == "offlineBtn" {
+        
+        if node.text == "Local" {
             selectedGameType = "Offline"
             animateToTimeSelection()
+            
         }
-        /*
-        else if name == "onlineBtn" {
-            selectedGameType = "Online"
-            animateToTimeSelection()
-        }
-        */
-    }
-    
-    func handleTimeMenuClick (node : SKNode?) {
-        guard let name = node?.name, let spriteNode = node as? SKShapeNode else { return }
-        
-        if name.starts(with: "time") {
-            toggleTimeButton(spriteNode)
-            return
-        }
-        if name == "back"{
+        else if node.text == "Back" {
+            selectedGameType = nil
             animateToGameSelection()
         }
-        else{
-            switch selectedTimeButton?.name {
-            case "timeThree" : startGame(180)
-            case "timeFive" : startGame(300)
-            case "timeTen" : startGame(600)
-            default : return
+        else if node.text == "Start Game" {
+            //add guard for selected game type
+            
+            for nd in timeSelectContainer.children{
+                
+                if let timeNode = nd as? MenuButtonToggleNode {
+                    if timeNode.isToggle {
+                        switch timeNode.text{
+                        case "10:00" : startGame(600)
+                        case "5:00" : startGame(300)
+                        case "3:00" : startGame(180)
+                        default : return
+                        }
+                    }
+                }
             }
+            return
         }
-        
-        
     }
     
-    func toggleTimeButton ( _ btn : SKShapeNode){
-        if let previous = selectedTimeButton {
-            previous.fillColor = SKColor(red: 170/255, green: 139/255, blue: 109/255, alpha: 1)
+    func handleTimeMenuClick (node : MenuButtonNode) {
+        
+        for nd in timeSelectContainer.children{
+            
+            if let timeNode = nd as? MenuButtonToggleNode {
+                if timeNode !== node {timeNode.removeToggle()}
+            }
+            
         }
-        btn.fillColor = .red
-        selectedTimeButton = btn
     }
+    
     
     func startGame (_ matchDuration : TimeInterval){
-        guard let _ = selectedTimeButton else {return}
         let gameScene = GameScene(size : self.size, matchDuration: matchDuration)
         gameScene.scaleMode = .aspectFill
         let transition = SKTransition.fade(withDuration: 0.2)
@@ -103,56 +86,61 @@ class MenuScene: SKScene {
     
     func setupMainButtons (){
         addChild(mainContainer)
+        mainContainer.position = CGPoint(x: frame.midX , y: frame.midY )
         
-        let offlineBtn = createButton(name: "offlineBtn",
-                                      text: "Local",
-                                      position: CGPoint(x: frame.midX, y: frame.midY - 30))
-        let onlineBtn = createButton(name: "onlineBtn",
-                                     text: "Online",
-                                     position: CGPoint(x: frame.midX, y: frame.midY + 30 ))
+
+        let offlineBtn = MenuButtonNode (size: CGSize(width: 200, height: 50),
+                                         position: CGPoint(x: 0, y: +35 ),
+                                         text: "Local",
+                                         action: handleMainMenuClick)
+        let onlineBtn = MenuButtonNode (size: CGSize(width: 200, height: 50),
+                                        position: CGPoint(x:0, y: -35),
+                                        text: "Online",
+                                        action: handleMainMenuClick)
         
         mainContainer.addChild(offlineBtn)
         mainContainer.addChild(onlineBtn)
         
     }
     
+    
     func setupTimeButtons (){
         addChild(timeSelectContainer)
-        timeSelectContainer.alpha = 0.0
         
-        let threeMinButton = createButton(name: "timeThree", text: "3:00", position: CGPoint(x: frame.midX, y: frame.midY + 30))
-        let fiveMinButton = createButton(name: "timeFive", text: "5:00", position: CGPoint(x: frame.midX, y: frame.midY - 30))
-        let tenMinButton = createButton(name: "timeTen", text: "10:00", position: CGPoint(x: frame.midX, y: frame.midY - 90))
-        let startButton =  createButton(name: "startGameBtn", text: "Start New Game", position: CGPoint(x: frame.midX, y: frame.midY - 150))
-        let backButton =  createButton(name: "back", text: "Back", position: CGPoint(x: frame.midX, y: frame.midY - 210))
+        let tenMinButton = MenuButtonToggleNode(size: CGSize(width: 200, height: 50),
+                                                position: CGPoint(x: 0, y: +140 ),
+                                                text: "10:00",
+                                                toggleAction: handleTimeMenuClick)
+        let fiveMinButton = MenuButtonToggleNode(size: CGSize(width: 200, height: 50),
+                                                position: CGPoint(x: 0, y: 70 ),
+                                                text: "5:00",
+                                                toggleAction: handleTimeMenuClick)
         
+        let threeMinButton = MenuButtonToggleNode(size: CGSize(width: 200, height: 50),
+                                                  position: CGPoint(x: 0, y: -0 ),
+                                                  text: "3:00",
+                                                  toggleAction: handleTimeMenuClick)
         
-        timeSelectContainer.addChild(threeMinButton)
-        timeSelectContainer.addChild(fiveMinButton)
+        let startButton = MenuButtonNode (size: CGSize(width: 200, height: 50),
+                                        position: CGPoint(x:0, y: -70),
+                                        text: "Start Game",
+                                        action: handleMainMenuClick)
+        
+        let backButton = MenuButtonNode (size: CGSize(width: 200, height: 50),
+                                        position: CGPoint(x:0, y: -140),
+                                        text: "Back",
+                                        action: handleMainMenuClick)
+        
+        timeSelectContainer.position = CGPoint(x: frame.midX , y: frame.midY )
+        timeSelectContainer.alpha = 0
         timeSelectContainer.addChild(tenMinButton)
-        timeSelectContainer.addChild(startButton)
+        timeSelectContainer.addChild(fiveMinButton)
+        timeSelectContainer.addChild(threeMinButton)
         timeSelectContainer.addChild(backButton)
+        timeSelectContainer.addChild(startButton)
+        
     }
     
-    func createButton (name: String, text: String, position: CGPoint) -> SKShapeNode {
-        
-       
-        let button = SKShapeNode(rectOf: CGSize(width: 200, height: 50), cornerRadius: 10)
-        button.fillColor =  SKColor(red: 170/255, green: 139/255, blue: 109/255, alpha: 1)
-        button.strokeColor = .clear
-        button.name = name
-        button.position = position
-        
-        let label = SKLabelNode(text: text)
-        label.fontName = "Helvetica-Bold"
-        label.fontSize = 20
-        label.verticalAlignmentMode = .center
-        label.zPosition = 1
-        label.fontColor = SKColor(red: 83/255, green: 61/255, blue: 42/255, alpha: 1)
-        
-        button.addChild(label)
-        return button
-    }
     
     func animateToTimeSelection (){
         isUserInteractionEnabled = false

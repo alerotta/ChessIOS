@@ -7,10 +7,18 @@
 
 import SpriteKit
 import SwiftUI
+import UIKit
 import GameplayKit
+
+protocol GameSceneDelegate: AnyObject {
+    func pauseGame()
+    func goToMenu()
+}
 
 
 class GameScene: SKScene {
+    
+    weak var gameDelegate : GameSceneDelegate?
     
     let buttonContainerWhite = SKNode ()
     let buttonContainerBlack = SKNode ()
@@ -32,6 +40,8 @@ class GameScene: SKScene {
     var isDragging : Bool = false
     
     init(size: CGSize, matchDuration: TimeInterval) {
+        
+
             // Initialize the manager
             self.chessGameManager = ChessGameManager(matchDuration: matchDuration)
             
@@ -270,16 +280,18 @@ class GameScene: SKScene {
     
     func setupTimerLabels (){
         
-        whiteTimerLabel = SKLabelNode(fontNamed: "Courier-Bold")
+        whiteTimerLabel = SKLabelNode(fontNamed: "Impact")
         whiteTimerLabel.text = formatTime(chessGameManager.whiteTime)
-        whiteTimerLabel.fontSize = 24
+        whiteTimerLabel.fontSize = 50
         whiteTimerLabel.fontColor = .black
+        whiteTimerLabel.position = CGPoint(x: 0, y: -50)
         bottomBackgroundPart.addChild(whiteTimerLabel)
         
-        blackTimerLabel = SKLabelNode(fontNamed: "Courier-Bold")
+        blackTimerLabel = SKLabelNode(fontNamed: "Impact")
         blackTimerLabel.text = formatTime(chessGameManager.whiteTime)
-        blackTimerLabel.fontSize = 24
+        blackTimerLabel.fontSize = 50
         blackTimerLabel.fontColor = .white
+        blackTimerLabel.position = CGPoint(x: 0, y: 50)
         blackTimerLabel.zRotation = .pi
         topBackgroundPart.addChild(blackTimerLabel)
     }
@@ -320,21 +332,23 @@ class GameScene: SKScene {
         return String(format: "%02d:%02d", minutes, seconds)
     }
     
-    func createButton (name: String, text: String, position: CGPoint) -> SKShapeNode {
-        let button = SKShapeNode(rectOf: CGSize(width: 50, height: 50), cornerRadius: 10)
+    func createButton (name: String, symbolName: String, position: CGPoint) -> SKShapeNode {
+        
+        let symbolConfig = UIImage.SymbolConfiguration(pointSize: 364,)
+        
+        let uiImage = UIImage(systemName: symbolName, withConfiguration: symbolConfig)!
+        let texture = SKTexture(image: uiImage)
+        
+        
+        let button = SKShapeNode(rectOf: CGSize(width: 25, height: 25))
+        button.fillTexture = texture
         button.fillColor =  .gray
         button.strokeColor = .clear
         button.name = name
         button.position = position
         
-        let label = SKLabelNode(text: text)
-        label.fontName = "Helvetica-Bold"
-        label.fontSize = 20
-        label.verticalAlignmentMode = .center
-        label.zPosition = 1
-        label.fontColor = .white
+
         
-        button.addChild(label)
         return button
     }
     
@@ -345,13 +359,20 @@ class GameScene: SKScene {
         
         buttonContainerWhite.position = CGPoint(x: frame.midX , y: frame.midY - 300)
         buttonContainerBlack.position = CGPoint(x: frame.midX , y: frame.midY + 300)
-        buttonContainerBlack.zRotation = .pi
         
     
-        let buttonPause = createButton(name: "pause", text: "P", position:  CGPoint(x:  30 , y: 0  ) )
-        let buttonResign = createButton(name: "whiteResign", text: "R", position:   CGPoint(x:  -30 , y: 0 ) )
-        let buttonPauseB = createButton(name: "pause", text: "P", position:  CGPoint(x:  30 , y: 0  ) )
-        let buttonResignB = createButton(name: "blackResign", text: "R", position:   CGPoint(x:  -30 , y: 0 ) )
+        let buttonPause = createButton(name: "pause",
+                                       symbolName: "pause",
+                                       position:  CGPoint(x:  30 , y: 0  ) )
+        let buttonResign = createButton(name: "whiteResign",
+                                        symbolName: "flag",
+                                        position:   CGPoint(x:  -30 , y: 0 ) )
+        let buttonPauseB = createButton(name: "pause",
+                                        symbolName: "pause",
+                                        position:  CGPoint(x:  30 , y: 0  ) )
+        let buttonResignB = createButton(name: "blackResign",
+                                         symbolName: "flag.fill",
+                                         position:   CGPoint(x:  -30 , y: 0 ) )
         
         buttonContainerWhite.addChild(buttonPause)
         buttonContainerWhite.addChild(buttonResign)
@@ -369,7 +390,7 @@ class GameScene: SKScene {
             if let name = node.name{
                 switch name {
                 case "pause":
-                    togglepause()
+                    gameDelegate?.pauseGame()
                 case "whiteResign" :
                     resign(str: "Black")
                    
@@ -416,23 +437,26 @@ class GameScene: SKScene {
     }
     
     func goToMenu (){
-        let menuScene = MenuScene(size: self.size)
-            menuScene.scaleMode = self.scaleMode
-            
-            let transition = SKTransition.push(with: .right, duration: 0.5)
-            self.view?.presentScene(menuScene, transition: transition)
+        gameDelegate?.goToMenu()
     }
     
 }
 
-struct GameScene_Preview : PreviewProvider {
-    static var previews : some View {
-        let scene = GameScene(size: CGSize(width: 375, height: 812), matchDuration: 300)
-                scene.scaleMode = .aspectFill
+struct GameScene_Preview: PreviewProvider {
+    static var previews: some View {
+        // Wrap in a GeometryReader to get the dynamic container size
+        GeometryReader { proxy in
+            SpriteView(
+                // Use the size of the preview container, not a hardcoded number!
+                scene: GameScene(size: proxy.size, matchDuration: 300)
+            )
+            .ignoresSafeArea()
+        }
+        .previewDisplayName("Dynamic Preview")
         
-        return SpriteView(scene: scene)
-                    .ignoresSafeArea()
-                    .previewDisplayName("Game Scene Preview")
+        // Optional: Add specific devices to check specific aspect ratios
+        SpriteView(scene: GameScene(size: CGSize(width: 430, height: 932), matchDuration: 300))
+            .previewDisplayName("iPhone 15 Pro Max")
+            .ignoresSafeArea()
     }
 }
-

@@ -11,6 +11,9 @@ class MenuButtonNode   : SKNode {
     
     private let pressDepth: CGFloat = 8.0
     private let animationSpeed: TimeInterval = 0.05
+    private let faceColor : SKColor = SKColor(red: 170/255, green: 139/255, blue: 109/255, alpha: 1)
+    private let baseColor : SKColor =  SKColor(red: 30/255, green: 30/255, blue: 30/255, alpha: 1)
+    
     private var actionBlock: ((MenuButtonNode)-> Void)?
     private var isEnabled: Bool = true
     
@@ -32,20 +35,33 @@ class MenuButtonNode   : SKNode {
         setupVisual(size: size, position: position, text: text)
     }
     
+    init (size: CGSize, position :CGPoint , text: String, color : SKColor , action: @escaping (MenuButtonNode)-> Void){
+        
+        self.text = text
+        
+        super.init()
+        self.actionBlock = action
+        self.isUserInteractionEnabled = true
+        self.position = position
+        setupVisual(size: size, position: position, text: text)
+        faceNode.fillColor = color
+    }
+    
     required init?(coder aDecoder: NSCoder) {
             fatalError("init(coder:) has not been implemented")
         }
     
     func setupVisual (size: CGSize, position :CGPoint , text: String){
         
+        
         baseNode = SKShapeNode(rectOf: size , cornerRadius: 10)
-        baseNode.fillColor =  SKColor(red: 30/255, green: 30/255, blue: 30/255, alpha: 1)
+        baseNode.fillColor =  baseColor
         baseNode.position = CGPoint(x: -pressDepth/2, y: -pressDepth )
         baseNode.strokeColor = .clear
         addChild(baseNode)
         
         faceNode = SKShapeNode(rectOf: size , cornerRadius: 10)
-        faceNode.fillColor =  SKColor(red: 170/255, green: 139/255, blue: 109/255, alpha: 1)
+        faceNode.fillColor =  faceColor
         faceNode.position = CGPoint.zero
         faceNode.strokeColor = .clear
         addChild(faceNode)
@@ -124,7 +140,7 @@ class MenuButtonToggleNode : MenuButtonNode {
     
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
         if !isToggle{
-            super.baseNode.fillColor = .green
+            super.baseNode.fillColor = SKColor(red: 30/255, green: 130/255, blue: 30/255, alpha: 1)
             super.touchesBegan(touches, with: event)
             toggleAction(self)
             }

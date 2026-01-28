@@ -7,6 +7,10 @@
 import SpriteKit
 import SwiftUI
 
+protocol MenuSceneDelegate: AnyObject{
+    func didTapStartGame(matchDuration : TimeInterval)
+}
+
 
 class MenuScene: SKScene {
     
@@ -14,6 +18,8 @@ class MenuScene: SKScene {
         case main
         case timeSelect
     }
+    
+    weak var menuDelegate : MenuSceneDelegate?
     
     let mainContainer = SKNode()
     let timeSelectContainer = SKNode()
@@ -50,9 +56,9 @@ class MenuScene: SKScene {
                 if let timeNode = nd as? MenuButtonToggleNode {
                     if timeNode.isToggle {
                         switch timeNode.text{
-                        case "10:00" : startGame(600)
-                        case "5:00" : startGame(300)
-                        case "3:00" : startGame(180)
+                        case "10:00" : menuDelegate?.didTapStartGame(matchDuration : 600)
+                        case "5:00" : menuDelegate?.didTapStartGame(matchDuration: 300)
+                        case "3:00" : menuDelegate?.didTapStartGame(matchDuration: 180)
                         default : return
                         }
                     }
@@ -73,14 +79,16 @@ class MenuScene: SKScene {
         }
     }
     
-    
+    /*
     func startGame (_ matchDuration : TimeInterval){
         let gameScene = GameScene(size : self.size, matchDuration: matchDuration)
         gameScene.scaleMode = .aspectFill
         let transition = SKTransition.fade(withDuration: 0.2)
         view?.presentScene(gameScene, transition: transition)
+        menuDelegate?.didTapStartGame()
         
     }
+     */
     
     
     
@@ -124,11 +132,13 @@ class MenuScene: SKScene {
         let startButton = MenuButtonNode (size: CGSize(width: 200, height: 50),
                                         position: CGPoint(x:0, y: -70),
                                         text: "Start Game",
+                                        color: SKColor(red: 170/255, green: 169/255, blue: 109/255, alpha: 1),
                                         action: handleMainMenuClick)
         
         let backButton = MenuButtonNode (size: CGSize(width: 200, height: 50),
                                         position: CGPoint(x:0, y: -140),
                                         text: "Back",
+                                        color: SKColor(red: 200/255, green: 139/255, blue: 109/255, alpha: 1),
                                         action: handleMainMenuClick)
         
         timeSelectContainer.position = CGPoint(x: frame.midX , y: frame.midY )

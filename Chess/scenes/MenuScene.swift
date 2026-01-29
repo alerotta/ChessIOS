@@ -23,6 +23,7 @@ class MenuScene: SKScene {
     
     let mainContainer = SKNode()
     let timeSelectContainer = SKNode()
+    let buttonSize = CGSize(width: 200, height: 50)
     
     var currentMenuState : menuState = .main
     var selectedGameType : String?
@@ -79,29 +80,16 @@ class MenuScene: SKScene {
         }
     }
     
-    /*
-    func startGame (_ matchDuration : TimeInterval){
-        let gameScene = GameScene(size : self.size, matchDuration: matchDuration)
-        gameScene.scaleMode = .aspectFill
-        let transition = SKTransition.fade(withDuration: 0.2)
-        view?.presentScene(gameScene, transition: transition)
-        menuDelegate?.didTapStartGame()
-        
-    }
-     */
-    
-    
-    
     func setupMainButtons (){
         addChild(mainContainer)
         mainContainer.position = CGPoint(x: frame.midX , y: frame.midY )
         
 
-        let offlineBtn = MenuButtonNode (size: CGSize(width: 200, height: 50),
-                                         position: CGPoint(x: 0, y: +35 ),
+        let offlineBtn = MenuButtonNode (size:buttonSize,
+                                         position: CGPoint(x: 0, y: 35 ),
                                          text: "Local",
                                          action: handleMainMenuClick)
-        let onlineBtn = MenuButtonNode (size: CGSize(width: 200, height: 50),
+        let onlineBtn = MenuButtonNode (size: buttonSize,
                                         position: CGPoint(x:0, y: -35),
                                         text: "Online",
                                         action: handleMainMenuClick)
@@ -115,27 +103,27 @@ class MenuScene: SKScene {
     func setupTimeButtons (){
         addChild(timeSelectContainer)
         
-        let tenMinButton = MenuButtonToggleNode(size: CGSize(width: 200, height: 50),
+        let tenMinButton = MenuButtonToggleNode(size: buttonSize,
                                                 position: CGPoint(x: 0, y: +140 ),
                                                 text: "10:00",
                                                 toggleAction: handleTimeMenuClick)
-        let fiveMinButton = MenuButtonToggleNode(size: CGSize(width: 200, height: 50),
+        let fiveMinButton = MenuButtonToggleNode(size: buttonSize,
                                                 position: CGPoint(x: 0, y: 70 ),
                                                 text: "5:00",
                                                 toggleAction: handleTimeMenuClick)
         
-        let threeMinButton = MenuButtonToggleNode(size: CGSize(width: 200, height: 50),
+        let threeMinButton = MenuButtonToggleNode(size: buttonSize,
                                                   position: CGPoint(x: 0, y: -0 ),
                                                   text: "3:00",
                                                   toggleAction: handleTimeMenuClick)
         
-        let startButton = MenuButtonNode (size: CGSize(width: 200, height: 50),
+        let startButton = MenuButtonNode (size:buttonSize,
                                         position: CGPoint(x:0, y: -70),
                                         text: "Start Game",
                                         color: SKColor(red: 170/255, green: 169/255, blue: 109/255, alpha: 1),
                                         action: handleMainMenuClick)
         
-        let backButton = MenuButtonNode (size: CGSize(width: 200, height: 50),
+        let backButton = MenuButtonNode (size: buttonSize,
                                         position: CGPoint(x:0, y: -140),
                                         text: "Back",
                                         color: SKColor(red: 200/255, green: 139/255, blue: 109/255, alpha: 1),

@@ -7,7 +7,7 @@
 
 import SpriteKit
 
-class MenuButtonNode   : SKNode {
+class MenuButtonNode : SKNode {
     
     private let pressDepth: CGFloat = 8.0
     private let animationSpeed: TimeInterval = 0.05

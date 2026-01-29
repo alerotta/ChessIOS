@@ -119,9 +119,12 @@ class GameViewController: UIViewController, MenuSceneDelegate , GameSceneDelegat
                 self.pauseOverlay?.removeFromSuperview()
                 
                 // Unpause the game
-                if let skView = self.view as? SKView {
-                    skView.isPaused = false
-                }
+                if let skView = self.view as? SKView,
+                           let gameScene = skView.scene as? GameScene { // Replace 'GameScene' with your actual class name
+                            
+                            // Call the method we created in Step 1
+                            gameScene.resume()
+                        }
             }
         }
 }

@@ -38,19 +38,19 @@ class GameScene: SKScene {
     var blackTimerLabel :  SKLabelNode!
     
     var isDragging : Bool = false
+    var matchDuration : TimeInterval
     
     init(size: CGSize, matchDuration: TimeInterval) {
         
 
-            // Initialize the manager
-            self.chessGameManager = ChessGameManager(matchDuration: matchDuration)
+        self.matchDuration = matchDuration
+        self.chessGameManager = ChessGameManager(matchDuration: matchDuration)
             
-            // Pass the value to the manager immediately
-            self.chessGameManager.whiteTime = matchDuration
-            self.chessGameManager.blackTime = matchDuration
+        
+        self.chessGameManager.whiteTime = matchDuration
+        self.chessGameManager.blackTime = matchDuration
             
-            // Call the superclass init
-            super.init(size: size)
+        super.init(size: size)
         }
     
     required init?(coder aDecoder: NSCoder) {
@@ -83,8 +83,7 @@ class GameScene: SKScene {
         chessBoard.position = CGPoint(x: self.frame.midX, y: self.frame.midY)
         addChild(chessBoard)
         
-        setupButtons ()
-        setupTimerLabels()
+        setupButtons (verticalOffset: squareSize*5 , horizontalOffset : availableWidth/2)
         setupObservers()
         
         
@@ -94,15 +93,12 @@ class GameScene: SKScene {
         
         guard let touch = touches.first else { return }
         let location = touch.location(in: self.chessBoard)
-        let locationScene = touch.location(in: self)
         let nodes = chessBoard.nodes(at:location)
         let touchedPiece = nodes.first(where: { $0 is PieceNode }) as? PieceNode
         let touchedSquare = nodes.first(where: { $0 is SquareNode }) as? SquareNode
         isDragging = false
         
         
-        handleButtonInteraction (at: locationScene)
-
             
         // *** the following part deals with touches over the board ***
         
@@ -278,24 +274,6 @@ class GameScene: SKScene {
     }
      
     
-    func setupTimerLabels (){
-        
-        whiteTimerLabel = SKLabelNode(fontNamed: "Impact")
-        whiteTimerLabel.text = formatTime(chessGameManager.whiteTime)
-        whiteTimerLabel.fontSize = 50
-        whiteTimerLabel.fontColor = .black
-        whiteTimerLabel.position = CGPoint(x: 0, y: -50)
-        bottomBackgroundPart.addChild(whiteTimerLabel)
-        
-        blackTimerLabel = SKLabelNode(fontNamed: "Impact")
-        blackTimerLabel.text = formatTime(chessGameManager.whiteTime)
-        blackTimerLabel.fontSize = 50
-        blackTimerLabel.fontColor = .white
-        blackTimerLabel.position = CGPoint(x: 0, y: 50)
-        blackTimerLabel.zRotation = .pi
-        topBackgroundPart.addChild(blackTimerLabel)
-    }
-    
     func setupObservers (){
         chessGameManager.onTimeUpdate = { [weak self] whiteTime, blackTime in
             DispatchQueue.main.async {
@@ -332,102 +310,110 @@ class GameScene: SKScene {
         return String(format: "%02d:%02d", minutes, seconds)
     }
     
-    func createButton (name: String, symbolName: String, position: CGPoint) -> SKShapeNode {
+    func createTimerLabel (isWhite: Bool , position : CGPoint) -> SKLabelNode {
         
-        let symbolConfig = UIImage.SymbolConfiguration(pointSize: 364,)
+        let timeLabel = SKLabelNode(fontNamed: "Impact")
+        timeLabel.text = formatTime(chessGameManager.whiteTime)
+        timeLabel.fontSize = 50
+        timeLabel.position = CGPoint(x : position.x + (1.2 * timeLabel.fontSize), y: position.y)
+        //timeLabel.position = position
+        timeLabel.verticalAlignmentMode = .center
         
-        let uiImage = UIImage(systemName: symbolName, withConfiguration: symbolConfig)!
-        let texture = SKTexture(image: uiImage)
         
+        if isWhite{
+            timeLabel.fontColor = .black
+        }
+        else{
+            timeLabel.fontColor = .white
+            timeLabel.zRotation = .pi
+        }
+        return timeLabel
         
-        let button = SKShapeNode(rectOf: CGSize(width: 25, height: 25))
-        button.fillTexture = texture
-        button.fillColor =  .gray
-        button.strokeColor = .clear
-        button.name = name
-        button.position = position
-        
-
-        
-        return button
     }
     
-    func setupButtons () {
+    
+    func setupButtons (verticalOffset : CGFloat , horizontalOffset : CGFloat) {
         
         addChild(buttonContainerWhite)
         addChild(buttonContainerBlack)
         
-        buttonContainerWhite.position = CGPoint(x: frame.midX , y: frame.midY - 300)
-        buttonContainerBlack.position = CGPoint(x: frame.midX , y: frame.midY + 300)
+        buttonContainerWhite.position = CGPoint(x: frame.midX , y: frame.midY - verticalOffset)
+        buttonContainerBlack.position = CGPoint(x: frame.midX , y: frame.midY + verticalOffset)
+        
+        let btnSize = CGSize(width: 50, height: 50)
         
     
-        let buttonPause = createButton(name: "pause",
-                                       symbolName: "pause",
-                                       position:  CGPoint(x:  30 , y: 0  ) )
-        let buttonResign = createButton(name: "whiteResign",
-                                        symbolName: "flag",
-                                        position:   CGPoint(x:  -30 , y: 0 ) )
-        let buttonPauseB = createButton(name: "pause",
-                                        symbolName: "pause",
-                                        position:  CGPoint(x:  30 , y: 0  ) )
-        let buttonResignB = createButton(name: "blackResign",
-                                         symbolName: "flag.fill",
-                                         position:   CGPoint(x:  -30 , y: 0 ) )
+        let buttonPause = GameButtonNode(size: btnSize,
+                                         position:  CGPoint(x: horizontalOffset, y: 0 ),
+                                         iconName: "pause.fill",
+                                         isBlack: false,
+                                         action: togglepause)
+        
+        
+        let buttonResign = GameButtonNode(size: btnSize,
+                                          position:  CGPoint(x: horizontalOffset + -70, y: 0  ),
+                                          iconName: "flag",
+                                          isBlack: false,
+                                          action: {self.resign(str: "Black")})
+        
+        let buttonPauseB = GameButtonNode(size: btnSize,
+                                          position:  CGPoint(x: horizontalOffset, y: 0 ),
+                                          iconName: "pause.fill",
+                                          isBlack: true,
+                                          action: togglepause)
+        
+        
+        let buttonResignB = GameButtonNode(size: btnSize,
+                                           position:  CGPoint(x: horizontalOffset + -70, y: 0  ),
+                                           iconName: "flag.fill",
+                                           isBlack: true,
+                                           action: {self.resign(str: "White")})
+         
+        
+        whiteTimerLabel = createTimerLabel(isWhite: true, position: CGPoint(x:  -horizontalOffset , y: 0 ))
+        blackTimerLabel = createTimerLabel(isWhite: false, position: CGPoint(x:  -horizontalOffset , y: 0 ))
+        
         
         buttonContainerWhite.addChild(buttonPause)
         buttonContainerWhite.addChild(buttonResign)
+        buttonContainerWhite.addChild(whiteTimerLabel)
 
         buttonContainerBlack.addChild(buttonPauseB)
         buttonContainerBlack.addChild(buttonResignB)
+        buttonContainerBlack.addChild(blackTimerLabel)
         
     }
-    
-    func handleButtonInteraction(at location : CGPoint) {
-        let touchednodes = nodes(at: location)
-        
-        
-        for node in touchednodes {
-            if let name = node.name{
-                switch name {
-                case "pause":
-                    gameDelegate?.pauseGame()
-                case "whiteResign" :
-                    resign(str: "Black")
-                   
-                case "blackResign" :
-                    resign(str: "White")
-                    
-                default : return
-                }
-            }
-        }
-        return
-    }
-    
-    private func animateButtonPress(node: SKNode) {
-        let scaleDown = SKAction.scale(to: 0.9, duration: 0.1)
-        let scaleUp = SKAction.scale(to: 1.0, duration: 0.1)
-        node.run(SKAction.sequence([scaleDown, scaleUp]))
-    }
+
     
     func togglepause (){
-        if isGameActive {
+        if isGameActive{
             chessGameManager.stopTimer()
+            isGameActive = false
+            self.isUserInteractionEnabled = false
+            gameDelegate?.pauseGame()
         }
-        else{
+
+    }
+    
+    func resume () {
+        if !isGameActive{
             chessGameManager.startTimer()
+            isGameActive = true
+            self.isUserInteractionEnabled = true
+            self.view?.isPaused = false
         }
-        isGameActive.toggle()
     }
     
     func resign(str : String) {
+        chessGameManager.stopTimer()
         chessGameManager.onGameOver?(str + " won by resignation")
         
     }
     
     func restartGame () {
-        let newScene = GameScene(size: self.size, matchDuration: 300)
+        let newScene = GameScene(size: self.size, matchDuration: matchDuration)
             newScene.scaleMode = self.scaleMode
+            newScene.gameDelegate = self.gameDelegate
             
             // 2. Create a transition (Crossfade looks nice)
             let transition = SKTransition.crossFade(withDuration: 0.5)

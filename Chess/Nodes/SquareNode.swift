@@ -12,15 +12,19 @@ class SquareNode : SKSpriteNode {
     let row : Int
     let col : Int
     private let defaultColor : SKColor
+    private let brightColor : SKColor
     private var moveIndicator : SKShapeNode?
     
     init (row : Int , col: Int, size: CGSize , isLight:Bool){
         self.row = row
         self.col = col
         
-        let lightColor = SKColor(red: 249/255, green: 243/255, blue: 223/255, alpha: 1)
-        let darkColor = SKColor(red: 86/255, green: 123/255, blue: 92/255, alpha: 1)
+        let lightColor = SKColor(red: 226/255, green: 205/255, blue: 181/255, alpha: 1)
+        let darkColor = SKColor(red: 170/255, green: 139/255, blue: 109/255, alpha: 1)
+        let brightLight = SKColor(red: 255/255, green: 215/255, blue: 181/255, alpha: 1)
+        let brightdark = SKColor(red: 230/255, green: 179/255, blue: 129/255, alpha: 1)
         self.defaultColor = isLight ? lightColor : darkColor
+        self.brightColor = isLight ? brightLight : brightdark
         super.init(texture: nil, color: defaultColor, size: size)
         
         //self.name = "square-\(col)-\(row)"
@@ -81,7 +85,7 @@ class SquareNode : SKSpriteNode {
     }
     
     func hihglight (){
-        self.color = .yellow
+        self.color = brightColor
     }
     func resetState(){
         self.color = defaultColor

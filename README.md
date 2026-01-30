@@ -8,6 +8,11 @@
 
 **[Chess Sié]** is an iOS application designed to simulate a fully functional chess game.
 
+<p float="left">
+  <img src="img1.png" width="400" />
+  <img src="img2.png" width="400" /> 
+</p>
+
 The primary objective of this repository is to serve as an educational exploration of **Swift** and the **SpriteKit** framework.
 
 ## 🚀 Technology Stack
@@ -24,6 +29,9 @@ At this stage, the project focuses heavily on the **visual and interactive** asp
 * **Rules:** The application currently relies on the external `SwiftChess` library to validate moves, check for checkmate/stalemate, and maintain the board state.
 
 ### Future Goals
+
+Add online game support.
+
 The roadmap includes a significant refactor to remove the dependency on `SwiftChess`. The ultimate goal is to write a custom chess engine and logic layer directly within this project to deepen understanding of algorithms and data structures in Swift.
 
 

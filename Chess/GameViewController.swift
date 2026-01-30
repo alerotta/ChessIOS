@@ -24,8 +24,8 @@ class GameViewController: UIViewController, MenuSceneDelegate , GameSceneDelegat
             view.presentScene(scene)
         
             view.ignoresSiblingOrder = true
-            view.showsFPS = true
-            view.showsNodeCount = true
+            //view.showsFPS = true
+            //view.showsNodeCount = true
             view.isMultipleTouchEnabled = false
         }
     }

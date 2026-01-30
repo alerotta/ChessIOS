@@ -282,11 +282,11 @@ class GameScene: SKScene {
                         }
         }
         
-        chessGameManager.onGameOver = { [weak self] result in
+        chessGameManager.onGameOver = { [weak self] winner , res in
             guard let self = self else {return}
             let panel = GameOverNode(sceneSize: self.size,
-                                     title: "Game Over",
-                                     message: result)
+                                     title: winner,
+                                     message: res)
             
             panel.onRestart = {[weak self] in
                 self?.restartGame()
@@ -316,7 +316,6 @@ class GameScene: SKScene {
         timeLabel.text = formatTime(chessGameManager.whiteTime)
         timeLabel.fontSize = 50
         timeLabel.position = CGPoint(x : position.x + (1.2 * timeLabel.fontSize), y: position.y)
-        //timeLabel.position = position
         timeLabel.verticalAlignmentMode = .center
         
         
@@ -406,7 +405,7 @@ class GameScene: SKScene {
     
     func resign(str : String) {
         chessGameManager.stopTimer()
-        chessGameManager.onGameOver?(str + " won by resignation")
+        chessGameManager.onGameOver?(str , "won by Resignation")
         
     }
     

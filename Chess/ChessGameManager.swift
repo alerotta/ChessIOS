@@ -44,7 +44,7 @@ class ChessGameManager {
     var blackTime : TimeInterval
     
     var onTimeUpdate : ((_ whiteTime: TimeInterval, _ blackTime: TimeInterval) -> Void)?
-    var onGameOver : ((_ result : String) -> Void)?
+    var onGameOver : ((_ winnerColor : String , _ typeofvictory : String ) -> Void)?
     
 
     
@@ -214,7 +214,7 @@ class ChessGameManager {
             if whiteTime <= 0 {
                 isGameActive = false
                 stopTimer()
-                onGameOver?("black won!")
+                onGameOver?("Black" , "won by time")
             }
         }
         else {
@@ -222,7 +222,7 @@ class ChessGameManager {
             if blackTime <= 0 {
                 isGameActive = false
                 stopTimer()
-                onGameOver?("white won!")
+                onGameOver?("White", "won by time")
             }
         }
         onTimeUpdate?(whiteTime,blackTime)
@@ -237,19 +237,19 @@ class ChessGameManager {
         
         case .won(color: .white):
             stopTimer()
-            onGameOver?("CheckMate!, white won!")
+            onGameOver?("White","won by CheckMate!" )
         
         case .won(color: .black):
             stopTimer()
-            onGameOver?("CheckMate!, black won!")
+            onGameOver?("Black","won by CheckMate!" )
             
         case .staleMate(color: .white):
             stopTimer()
-            onGameOver?("staleMate!, draw!")
+            onGameOver?("Draw!","staleMate!")
             
         case .staleMate(color: .black):
             stopTimer()
-            onGameOver?("staleMate!, draw!")
+            onGameOver?("Draw!","staleMate!")
     
         }
         

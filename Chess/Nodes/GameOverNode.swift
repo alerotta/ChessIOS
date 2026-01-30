@@ -32,21 +32,28 @@ class GameOverNode : SKNode {
         
         let panelSize = CGSize(width : sceneSize.width * 0.8, height: sceneSize.height * 0.6)
         let panel = SKShapeNode (rectOf: panelSize, cornerRadius: 20)
-        panel.fillColor = .white
+        panel.fillColor = SKColor(red: 226/255, green: 205/255, blue: 181/255, alpha: 1)
         panel.strokeColor = .gray
         panel.lineWidth = 2
         addChild(panel)
     
         let titleLabel = SKLabelNode(text: title)
-        titleLabel.fontName = "AvenirNext-Medium"
-        titleLabel.fontSize = 32
-        titleLabel.color = .black
-        titleLabel.position = CGPoint(x: 0, y: 20)
-        //titleLabel.verticalAlignmentMode = .center
-       // panel.addChild(titleLabel)
+        titleLabel.fontName = "Avenir-Heavy"
+        titleLabel.fontSize = 40
+        if title == "Black" {
+            titleLabel.fontColor = .black
+        }
+        else if title == "White"{
+            titleLabel.fontColor = .white
+        }else{
+            titleLabel.fontColor = .gray
+        }
+        titleLabel.position = CGPoint(x: 0, y: 100)
+        titleLabel.verticalAlignmentMode = .center
+        panel.addChild(titleLabel)
         
         let msgLabel = SKLabelNode(text: message)
-        msgLabel.fontName = "AvenirNext-Medium"
+        msgLabel.fontName = "Avenir-Heavy"
         msgLabel.fontSize = 20
         msgLabel.fontColor = .darkGray
         msgLabel.position = CGPoint(x: 0, y: 20)
@@ -54,7 +61,7 @@ class GameOverNode : SKNode {
         
         let btnY: CGFloat = -50
         let btnSpacing: CGFloat = 60
-                
+        
         createButton(name: restartButtonName, text: "Play Again", position: CGPoint(x: 0, y: btnY), parent: panel)
         createButton(name: menuButtonName, text: "Exit to Menu", position: CGPoint(x: 0, y: btnY - btnSpacing), parent: panel)
     }
@@ -64,7 +71,7 @@ class GameOverNode : SKNode {
             let btn = SKShapeNode(rectOf: btnSize, cornerRadius: 10)
             btn.name = name // Vital for touch detection
             btn.position = position
-            btn.fillColor = .systemBlue
+            btn.fillColor = SKColor(red: 170/255, green: 139/255, blue: 109/255, alpha: 1)
             btn.strokeColor = .clear
             
             let label = SKLabelNode(text: text)
@@ -72,7 +79,7 @@ class GameOverNode : SKNode {
             label.fontName = "AvenirNext-Bold"
             label.fontSize = 18
             label.verticalAlignmentMode = .center
-            label.fontColor = .white
+            label.fontColor = SKColor(red: 83/255, green: 61/255, blue: 42/255, alpha: 1)
             
             btn.addChild(label)
             parent.addChild(btn)
@@ -91,11 +98,6 @@ class GameOverNode : SKNode {
 
                 } else if node.name == menuButtonName {
                     self.onMenu?()
-                    /*
-                    runButtonAnimation(node: node) {
-                        self.onMenu?()
-                    }
-                     */
                 }
             }
         }
